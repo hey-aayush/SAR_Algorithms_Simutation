@@ -9,6 +9,18 @@
 model arenaModel
 
 global {
+	
+	list all_directions <- [
+		[0,1], 		//N
+		[1,-1],		//NW
+		[-1,0],		//W
+		[-1,-1],	//WS
+		[0,-1],		//S
+		[1,-1],		//SE
+		[1,0],		//E
+		[1,1]		//NE
+	];
+	
 	int nb_target_init <- 20;
 	int nb_drone_init <- 10;
 	int distance_to_intercept <- 1;
@@ -31,6 +43,7 @@ species target {
 	reflex basic_move {
 		target_cell <- one_of(target_cell.neighbors);
 		location <- target_cell.location;
+		write location;	
 	}
 	
 	action rescused{
@@ -61,7 +74,8 @@ species drone {
 	    }
 	}	   
 	aspect base {
-		draw square(size) color: color;
+		draw "|👨‍🦱|" color: #white font: font('Default', 50, #bold) ;
+		
 	}
 } 
 
@@ -73,11 +87,11 @@ experiment search_and_rescue type: gui {
 	parameter "Initial number of target: " var: nb_target_init min: 1 max: 1000 category: "Target";
 	parameter "Initial number of drones: " var: nb_drone_init min: 1 max: 1000 category: "Drone";
 	output {
-		display main_display {
-			grid grid_cell border: #black;
+		display main_display background:#red {
+//			image drone file:"/home/aayush/Downloads/DroneLogo.png";
+			grid grid_cell lines:#black;
 			species target aspect: base;
 			species drone aspect: base;
 		}
 	}
 }
-

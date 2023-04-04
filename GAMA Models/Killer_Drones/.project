@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>Killer_Drones</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.xtext.ui.shared.xtextBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
+		<nature>msi.gama.application.gamaNature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>external/DroneLogo.jpg</name>
+			<type>1</type>
+			<location>/home/aayush/Downloads/DroneLogo.jpg</location>
+		</link>
+		<link>
+			<name>external/DroneLogo.png</name>
+			<type>1</type>
+			<location>/home/aayush/Downloads/DroneLogo.png</location>
+		</link>
+	</linkedResources>
+</projectDescription>
