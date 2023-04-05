@@ -12,17 +12,18 @@ global parent:agent{
 	
 	int ground_side <-100;
 	
-	int minor_cell_side <- 3;
-	int major_cell_side <- 4;
+	int minor_cell_side <- 2;
+	int major_cell_side <- 2;
 	int cell_side <- minor_cell_side * major_cell_side;
 	
 	float minor_cell_length <- float(ground_side)/float(cell_side);
+	float major_cell_length <- float(ground_side)/float(major_cell_side);
 	
-	int no_of_drones <- 4;
-	int no_of_target <- 4;
+	int no_of_drones <- 3;
+	int no_of_target <- 5;
 	
 	list target_map;
-
+	
 	list attraction_matrix;	
 	
 	int IS_SURVEYED <- 0;
@@ -33,7 +34,10 @@ global parent:agent{
 	list ground_surveillance_mat;
 	
 	list<drone> allDrones;
-		
+	int droneBatteryLife <-2000;
+	
+	float attraction_constant <-1.0;
+	
 	geometry shape <- rectangle(ground_side,ground_side);
 	
 	action initialise_matrix_2d(list init_matrix,int cell_size){
@@ -84,6 +88,95 @@ species utility{
 		put target_map_cell in:target_map_row at:target_grid_Y;
 		put target_map_row in:target_matrix at:target_grid_X;
 	}
+	
+			
+	point get_minor_grid_location(int grid_x,int grid_y){
+		return {(grid_x+0.5)*minor_cell_length,(grid_y+0.5)*minor_cell_length,0};
+	}
+	
+	point get_major_grid_location(int grid_X,int grid_Y){
+		return {(grid_X+0.5)*major_cell_length,(grid_Y+0.5)*major_cell_length,0};
+	}
+	
+	float get_vector_magnitude(point vector){
+		return sqrt(vector.x^2+vector.y^2+vector.z^2);
+	}
+	
+	float get_distance_bt_points(point pt1,point pt2){
+		point distance_vector <- pt2-pt1;
+		float distance <- get_vector_magnitude(distance_vector);
+		return distance;		
+	}
+	
+	float get_distance(point drone_location,int grid_x,int grid_y){
+		point destination_location <- get_minor_grid_location(grid_x,grid_y);
+		float distance_bet <- get_distance_bt_points(drone_location,destination_location);
+		return distance_bet;
+	}
+	
+	float get_time_req(float distance,float given_speed){
+		return distance/given_speed;
+	}
+	
+	int get_lock_period_req(float time_req){
+		return int(ceil(time_req/step));
+	}	
+	
+	int get_lock_period(point drone_location,int grid_x,int grid_y,float drone_speed,float survey_time){
+		float distance_bet_points <- get_distance(drone_location,grid_x,grid_y);
+		float time_req <- get_time_req(distance_bet_points,drone_speed)+survey_time;
+		int lock_period <- get_lock_period_req(time_req);
+		return lock_period;
+	}
+	
+	// TODO :: Test these functions individually
+	int get_no_of_targets(int major_grid_X,int major_grid_Y){
+		int no_of_targets_found <-0;
+		loop row from:0 to:minor_cell_side-1{
+			loop col from:0 to:minor_cell_side-1{
+				int minor_row <- major_grid_X+row;
+				int minor_col <- major_grid_Y+col;
+				no_of_targets_found<-no_of_targets_found+int(ground_surveillance_mat[minor_row][minor_col][NO_OF_TARGETS]);
+			}
+		}
+		return no_of_targets_found;
+	}
+	
+	float get_surveyed_percentage(int major_grid_X,int major_grid_Y){
+		int no_of_cells_surveyed <-0;
+		loop row from:0 to:minor_cell_side-1{
+			loop col from:0 to:minor_cell_side-1{
+				int minor_row <- major_grid_X+row;
+				int minor_col <- major_grid_Y+col;
+				no_of_cells_surveyed<-no_of_cells_surveyed+int(ground_surveillance_mat[minor_row][minor_col][IS_SURVEYED]);
+			}
+		}
+		return no_of_cells_surveyed/minor_cell_side^2;
+	}
+	
+	float return_attraction_value(drone given_drone,int major_grid_X,int major_grid_Y){
+		point drone_location <- given_drone.location;
+		point major_cell_location <- get_major_grid_location(major_grid_X,major_grid_Y);
+		float distance_bet <- get_distance_bt_points(drone_location,major_cell_location);
+		float battery_life <- given_drone.batteryLife;
+		int reputation <- 1+given_drone.targetRescued;
+		float surveillance_factor <- get_surveyed_percentage(major_grid_X,major_grid_Y);
+		
+		float attraction_power <- (distance_bet)^2/(battery_life*reputation);
+		float attraction <- attraction_constant*exp(-1*attraction_power)*(1-surveillance_factor);
+		
+		return attraction;
+	}
+	
+	action update_attraction_mat(drone given_drone){
+		int drone_idx <-given_drone.droneID;
+		loop row from:0 to:major_cell_side-1{
+			loop col from:0 to:major_cell_side-1{
+				float attraction_val <- return_attraction_value(given_drone,row,col);
+				do put_in_matrix_3d(attraction_matrix,row,col,drone_idx,attraction_val);
+			}
+		}
+	}
 }
 
 species target parent:utility {
@@ -122,7 +215,10 @@ species target parent:utility {
 
 species drone parent:utility skills:[moving]{
 	
+	int droneID;
+	
 	int lockPeriod;
+	float batteryLife;
 	
 	float speed;
 	float surveyTime;
@@ -130,43 +226,14 @@ species drone parent:utility skills:[moving]{
 	int target_grid_X;
 	int target_grid_Y;
 	point target_location;
+	int targetRescued;
 	
 	image_file drone_icon <- image_file("../includes/DroneLogo.png");
 	
 	aspect icon {
 		draw drone_icon size: 2.5;
 	}	
-			
-	point get_grid_location(int grid_x,int grid_y){
-		return {(grid_x+0.5)*minor_cell_length,(grid_y+0.5)*minor_cell_length,0};
-	}
-	
-	float get_vector_magnitude(point vector){
-		return sqrt(vector.x^2+vector.y^2+vector.z^2);
-	}
-	
-	float get_distance(point drone_location,int grid_x,int grid_y){
-		point destination_location <- get_grid_location(grid_x,grid_y);
-		point distance_vector <- destination_location-drone_location;
-		float distance <- get_vector_magnitude(distance_vector);
-		return distance;
-	}
-	
-	float get_time_req(float distance,float given_speed){
-		return distance/given_speed;
-	}
-	
-	int get_lock_period_req(float time_req){
-		return int(ceil(time_req/step));
-	}	
-	
-	int get_lock_period(point drone_location,int grid_x,int grid_y,float drone_speed,float survey_time){
-		float distance_bet_points <- get_distance(drone_location,grid_x,grid_y);
-		float time_req <- get_time_req(distance_bet_points,drone_speed)+survey_time;
-		int lock_period <- get_lock_period_req(time_req);
-		return lock_period;
-	}
-	
+
 	action goto_minor_cell(int grid_x,int grid_y){
 		lockPeriod <- get_lock_period(location,grid_x,grid_y,speed,surveyTime);
 		do goto(target_location);
@@ -187,6 +254,7 @@ species drone parent:utility skills:[moving]{
 	reflex move {
 		
 		if(lockPeriod=0){
+			do update_attraction_mat(self);
 			do survey_nxt_cell();
 		}else{
 			lockPeriod<-lockPeriod-1;
@@ -198,29 +266,43 @@ species drone parent:utility skills:[moving]{
 		}
 		ask target at_distance(0.5){
 			do get_rescued();
+			myself.targetRescued<-myself.targetRescued+1;
 		}
 
 		ask ground_cell{
 			do update_color;
 		}
+		
+		batteryLife <- batteryLife - (1/droneBatteryLife);
 	}
 	
 	point select_best_cell{
-		loop i from:0 to:cell_side-1{
-			loop j from:0 to:cell_side-1{
-					if(int(ground_surveillance_mat[i][j][IS_SURVEYED])=0 and target_map[i][j]=true and int(ground_surveillance_mat[i][j][IS_ALLOCATED])=0){
-						return {i,j};
+		float cur_attraction_val <- 0.0;
+		int best_x <- rnd(cell_side-1);
+		int best_y <- rnd(cell_side-1);
+		int drone_IDX <- self.droneID;
+		loop i from:0 to:major_cell_side-1{
+			loop j from:0 to:major_cell_side-1{
+					// Minor h ye
+					if(int(ground_surveillance_mat[i][j][IS_SURVEYED])=0 and int(ground_surveillance_mat[i][j][IS_ALLOCATED])=0){
+						float att_val <- float(attraction_matrix[i][j][drone_IDX]);
+						if(cur_attraction_val < att_val or cur_attraction_val = att_val){
+							cur_attraction_val <- att_val;
+							best_x<-i;
+							best_y<-j;
+						}
 					}
 			}
 		}
-		return {rnd(cell_side-1),rnd(cell_side-1)};
+		//Convert into Minor
+		return {best_x,best_y};
 	}
 	
 	action survey_nxt_cell{
 		point best_cell <-select_best_cell();
 		target_grid_X<-int(best_cell.x);
 		target_grid_Y<-int(best_cell.y);
-		target_location <- get_grid_location(target_grid_X,target_grid_Y);
+		target_location <- get_minor_grid_location(target_grid_X,target_grid_Y);
 		do allocate_cell(target_grid_X,target_grid_Y);
 		do goto_minor_cell(target_grid_X,target_grid_Y);
 	}
@@ -229,6 +311,9 @@ species drone parent:utility skills:[moving]{
 		lockPeriod<-0;
 		speed<-1.0;
 		surveyTime<-1.0;
+		batteryLife<-1.0;
+		targetRescued<-0;
+		droneID<-length(allDrones);
 		
 		add self to:allDrones;
 	}
