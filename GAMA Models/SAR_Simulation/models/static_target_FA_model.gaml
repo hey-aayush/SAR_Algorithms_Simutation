@@ -12,15 +12,15 @@ global parent:agent{
 	
 	int ground_side <-100;
 	
-	int minor_cell_side <- 2;
-	int major_cell_side <- 2;
+	int minor_cell_side <- 5;
+	int major_cell_side <- 7;
 	int cell_side <- minor_cell_side * major_cell_side;
 	
 	float minor_cell_length <- float(ground_side)/float(cell_side);
 	float major_cell_length <- float(ground_side)/float(major_cell_side);
 	
-	int no_of_drones <- 3;
-	int no_of_target <- 5;
+	int no_of_drones <- 20;
+	int no_of_target <- 50;
 	
 	list target_map;
 	
@@ -62,6 +62,21 @@ global parent:agent{
 			}
 			add rows to:init_matrix;
 		}	
+	}
+	
+	bool is_surveillance_complete{
+		loop i from:0 to:cell_side-1{
+			loop j from:0 to:cell_side-1{
+					if(ground_surveillance_mat[i][j][IS_SURVEYED]=0.0){
+						return false;
+					}
+			}
+		}
+		return true;
+	}
+	
+	reflex end_stimuation when:is_surveillance_complete(){
+		do pause;
 	}
 	
 	init{	
@@ -146,14 +161,15 @@ species utility{
 		int no_of_cells_surveyed <-0;
 		loop row from:0 to:minor_cell_side-1{
 			loop col from:0 to:minor_cell_side-1{
-				int minor_row <- major_grid_X+row;
-				int minor_col <- major_grid_Y+col;
+				int minor_row <- minor_cell_side*major_grid_X+row;
+				int minor_col <- minor_cell_side*major_grid_Y+col;
 				no_of_cells_surveyed<-no_of_cells_surveyed+int(ground_surveillance_mat[minor_row][minor_col][IS_SURVEYED]);
 			}
 		}
 		return no_of_cells_surveyed/minor_cell_side^2;
 	}
 	
+	// TODO:: Make sure empty major cells have less attraction over other target present major cells
 	float return_attraction_value(drone given_drone,int major_grid_X,int major_grid_Y){
 		point drone_location <- given_drone.location;
 		point major_cell_location <- get_major_grid_location(major_grid_X,major_grid_Y);
@@ -278,24 +294,37 @@ species drone parent:utility skills:[moving]{
 	
 	point select_best_cell{
 		float cur_attraction_val <- 0.0;
-		int best_x <- rnd(cell_side-1);
-		int best_y <- rnd(cell_side-1);
+		int best_x <- rnd(major_cell_side-1);
+		int best_y <- rnd(major_cell_side-1);
 		int drone_IDX <- self.droneID;
 		loop i from:0 to:major_cell_side-1{
-			loop j from:0 to:major_cell_side-1{
-					// Minor h ye
-					if(int(ground_surveillance_mat[i][j][IS_SURVEYED])=0 and int(ground_surveillance_mat[i][j][IS_ALLOCATED])=0){
-						float att_val <- float(attraction_matrix[i][j][drone_IDX]);
-						if(cur_attraction_val < att_val or cur_attraction_val = att_val){
-							cur_attraction_val <- att_val;
-							best_x<-i;
-							best_y<-j;
-						}
-					}
+			loop j from:0 to:major_cell_side-1{					
+				float att_val <- float(attraction_matrix[i][j][drone_IDX]);
+				if(cur_attraction_val < att_val or cur_attraction_val = att_val){
+					cur_attraction_val <- att_val;
+					best_x<-i;
+					best_y<-j;
+				}	
 			}
 		}
-		//Convert into Minor
-		return {best_x,best_y};
+		
+		list available_cell;
+		loop i from:0 to:minor_cell_side-1{
+			loop j from:0 to:minor_cell_side-1{	
+				int grid_row <- minor_cell_side*best_x+i;
+				int grid_col <- minor_cell_side*best_y+j;
+				if(int(ground_surveillance_mat[grid_row][grid_col][IS_SURVEYED])=0 and int(ground_surveillance_mat[grid_row][grid_col][IS_ALLOCATED])=0){
+					add {grid_row,grid_col} to:available_cell;
+				}
+			}
+		}		
+		
+		if (length(available_cell)!=0){
+			point best_cell <- one_of(available_cell);	
+			return best_cell;			
+		}
+		
+		return {minor_cell_side*best_x+rnd(minor_cell_side-1),minor_cell_side*best_y+rnd(minor_cell_side-1)};
 	}
 	
 	action survey_nxt_cell{
@@ -342,10 +371,10 @@ experiment sar_simulation type:gui{
 			species target aspect:icon;
 			species drone aspect:icon;
 		}
-//		display Parameters_Information refresh: every(5#cycles){
-//			chart "Targets Remaining" type: series size: {1,0.5} position: {0, 0.5} {
-//				data "number_of_target" value: no_of_target color: #blue;
-//			}
-//		}
+		display Parameters_Information refresh: every(5#cycles){
+			chart "Targets Remaining" type: series size: {1,0.5} position: {0, 0.5} {
+				data "number_of_target" value: no_of_target color: #blue;
+			}
+		}
 	}
 }
