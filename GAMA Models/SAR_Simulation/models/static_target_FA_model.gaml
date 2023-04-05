@@ -12,22 +12,31 @@ global parent:agent{
 	
 	int ground_side <-100;
 	
-	int minor_cell_side <- 4;
-	int major_cell_side <- 5;
+	int minor_cell_side <- 3;
+	int major_cell_side <- 4;
 	int cell_side <- minor_cell_side * major_cell_side;
 	
 	float minor_cell_length <- float(ground_side)/float(cell_side);
 	
-	int no_of_drones <- 5;
-	int no_of_target <- 20;
+	int no_of_drones <- 4;
+	int no_of_target <- 4;
 	
 	list target_map;
-	list is_cell_allocated;
-	list is_cell_surveyed;
+
+	list attraction_matrix;	
+	
+	int IS_SURVEYED <- 0;
+	int IS_ALLOCATED <- 1;
+	int NO_OF_TARGETS <- 2;
+	int SURVEILLANCE_MAT_HEIGHT <- 3;
+	
+	list ground_surveillance_mat;
+	
+	list<drone> allDrones;
 		
 	geometry shape <- rectangle(ground_side,ground_side);
 	
-	action initialise_matrix(list init_matrix,int cell_size){
+	action initialise_matrix_2d(list init_matrix,int cell_size){
 		loop i from:0 to:cell_size-1{
 			list row;
 			loop j from:0 to:cell_size-1{
@@ -37,19 +46,42 @@ global parent:agent{
 		}	
 	}
 	
-	init{
-		do initialise_matrix(target_map,cell_side);
-		do initialise_matrix(is_cell_allocated,cell_side);
-		do initialise_matrix(is_cell_surveyed,cell_side);
+	action initialise_matrix_3d(list init_matrix,int base_cell_size,int height){
+		loop row from:0 to:base_cell_size-1{
+			list rows;
+			loop col from:0 to:base_cell_size-1{
+				list att_for_each_cell;
+				loop d from:0 to:height-1{
+					add 0.0 to:att_for_each_cell;
+				}
+				add att_for_each_cell to:rows;
+			}
+			add rows to:init_matrix;
+		}	
+	}
+	
+	init{	
+		do initialise_matrix_2d(target_map,cell_side);
+		do initialise_matrix_3d(ground_surveillance_mat,cell_side,SURVEILLANCE_MAT_HEIGHT);
+		do initialise_matrix_3d(attraction_matrix,major_cell_side,no_of_drones);
 		create drone number:no_of_drones;
 		create target number:no_of_target;
 	}
 }
 
 species utility{
-	action put_in_matrix(list target_matrix,int target_grid_X,int target_grid_Y,bool value){
+	
+	action put_in_matrix_2d(list target_matrix,int target_grid_X,int target_grid_Y,bool value){
 		list target_map_row <- target_matrix[target_grid_X];
 		put value in:target_map_row at:target_grid_Y;
+		put target_map_row in:target_matrix at:target_grid_X;
+	}
+	
+	action put_in_matrix_3d(list target_matrix,int target_grid_X,int target_grid_Y,int height,float value){
+		list target_map_row <- target_matrix[target_grid_X];
+		list target_map_cell <- target_map_row[target_grid_Y];
+		put value in:target_map_cell at:height;
+		put target_map_cell in:target_map_row at:target_grid_Y;
 		put target_map_row in:target_matrix at:target_grid_X;
 	}
 }
@@ -64,15 +96,18 @@ species target parent:utility {
 	}
 	
 	action add_target_map(int target_grid_X,int target_grid_Y){
-		do put_in_matrix(target_map,target_grid_X,target_grid_Y,true);
+		do put_in_matrix_2d(target_map,target_grid_X,target_grid_Y,true);
 	}
 	
 	action remove_target_map(int target_grid_X,int target_grid_Y){
-		do put_in_matrix(target_map,target_grid_X,target_grid_Y,false);
+		do put_in_matrix_2d(target_map,target_grid_X,target_grid_Y,false);
 	}
 	
 	action get_rescued{
 		do remove_target_map(target_cell.grid_x,target_cell.grid_y);
+		int no_target_at_cell <- int(ground_surveillance_mat[target_cell.grid_x][target_cell.grid_y][NO_OF_TARGETS]);
+		do put_in_matrix_3d(ground_surveillance_mat,target_cell.grid_x,target_cell.grid_y,NO_OF_TARGETS,float(no_target_at_cell+1));
+		no_of_target<-no_of_target-1;
 		do die();
 	}
 	
@@ -138,19 +173,15 @@ species drone parent:utility skills:[moving]{
 	}
 	
 	action allocate_cell(int grid_X,int grid_Y){
-		do put_in_matrix(is_cell_allocated,grid_X,grid_Y,true);
+		do put_in_matrix_3d(ground_surveillance_mat,grid_X,grid_Y,IS_ALLOCATED,1.0);
 	}
 	
 	action deallocate_cell(int grid_X,int grid_Y){
-		write "Cell Deallocated";
-		do put_in_matrix(is_cell_allocated,grid_X,grid_Y,false);
+		do put_in_matrix_3d(ground_surveillance_mat,grid_X,grid_Y,IS_ALLOCATED,0.0);
 	}
 	
 	action mark_cell_surveyed(int grid_X,int grid_Y){
-		write "Cell Surveyed";
-		write {grid_X,grid_Y};
-		do put_in_matrix(is_cell_surveyed,grid_X,grid_Y,true);
-		write is_cell_surveyed;
+		do put_in_matrix_3d(ground_surveillance_mat,grid_X,grid_Y,IS_SURVEYED,1.0);
 	}
 	
 	reflex move {
@@ -177,11 +208,11 @@ species drone parent:utility skills:[moving]{
 	point select_best_cell{
 		loop i from:0 to:cell_side-1{
 			loop j from:0 to:cell_side-1{
-					if(is_cell_surveyed[i][j]=false and target_map[i][j]=true and is_cell_allocated[i][j]=false){
+					if(int(ground_surveillance_mat[i][j][IS_SURVEYED])=0 and target_map[i][j]=true and int(ground_surveillance_mat[i][j][IS_ALLOCATED])=0){
 						return {i,j};
 					}
 			}
-		}	
+		}
 		return {rnd(cell_side-1),rnd(cell_side-1)};
 	}
 	
@@ -198,6 +229,8 @@ species drone parent:utility skills:[moving]{
 		lockPeriod<-0;
 		speed<-1.0;
 		surveyTime<-1.0;
+		
+		add self to:allDrones;
 	}
 	
 }
@@ -205,9 +238,9 @@ species drone parent:utility skills:[moving]{
 grid ground_cell height:cell_side width:cell_side neighbors:4 {
 	
 	action update_color{
-		if(bool(is_cell_surveyed[grid_x][grid_y])){
+		if(ground_surveillance_mat[grid_x][grid_y][IS_SURVEYED]=1.0){
 			color <- #green;
-		}else if(bool(target_map[grid_x][grid_y])){
+		}else if(target_map[grid_x][grid_y]=true){
 			color <- #blue;
 		}else{
 			color <- #grey;
@@ -224,5 +257,10 @@ experiment sar_simulation type:gui{
 			species target aspect:icon;
 			species drone aspect:icon;
 		}
+//		display Parameters_Information refresh: every(5#cycles){
+//			chart "Targets Remaining" type: series size: {1,0.5} position: {0, 0.5} {
+//				data "number_of_target" value: no_of_target color: #blue;
+//			}
+//		}
 	}
 }
