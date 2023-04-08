@@ -14,13 +14,17 @@ global parent:agent{
 	
 	int minor_cell_side <- 5;
 	int major_cell_side <- 7;
+	
 	int cell_side <- minor_cell_side * major_cell_side;
 	
 	float minor_cell_length <- float(ground_side)/float(cell_side);
 	float major_cell_length <- float(ground_side)/float(major_cell_side);
 	
-	int no_of_drones <- 20;
-	int no_of_target <- 50;
+	int nb_drones_init <- 20;
+	int nb_target_init <- 50;
+	
+	int no_of_drones <- nb_drones_init;
+	int no_of_target <- nb_target_init;
 	
 	list target_map;
 	
@@ -34,9 +38,11 @@ global parent:agent{
 	list ground_surveillance_mat;
 	
 	list<drone> allDrones;
-	int droneBatteryLife <-2000;
+	int droneBatteryCapacity <-2000;
 	
 	float attraction_constant <-1.0;
+	
+	float cur_avg_target_hit_time <-0;
 	
 	geometry shape <- rectangle(ground_side,ground_side);
 	
@@ -83,8 +89,8 @@ global parent:agent{
 		do initialise_matrix_2d(target_map,cell_side);
 		do initialise_matrix_3d(ground_surveillance_mat,cell_side,SURVEILLANCE_MAT_HEIGHT);
 		do initialise_matrix_3d(attraction_matrix,major_cell_side,no_of_drones);
-		create drone number:no_of_drones;
-		create target number:no_of_target;
+		create drone number:nb_drones_init;
+		create target number:nb_target_init;
 	}
 }
 
@@ -178,7 +184,7 @@ species utility{
 		int reputation <- 1+given_drone.targetRescued;
 		float surveillance_factor <- get_surveyed_percentage(major_grid_X,major_grid_Y);
 		
-		float attraction_power <- (distance_bet)^2/(battery_life*reputation);
+		float attraction_power <- (distance_bet)/(battery_life*reputation^2);
 		float attraction <- attraction_constant*exp(-1*attraction_power)*(1-surveillance_factor);
 		
 		return attraction;
@@ -217,6 +223,7 @@ species target parent:utility {
 		int no_target_at_cell <- int(ground_surveillance_mat[target_cell.grid_x][target_cell.grid_y][NO_OF_TARGETS]);
 		do put_in_matrix_3d(ground_surveillance_mat,target_cell.grid_x,target_cell.grid_y,NO_OF_TARGETS,float(no_target_at_cell+1));
 		no_of_target<-no_of_target-1;
+		cur_avg_target_hit_time <- no_of_target/(1+cycle*step);
 		do die();
 	}
 	
@@ -289,10 +296,10 @@ species drone parent:utility skills:[moving]{
 			do update_color;
 		}
 		
-		batteryLife <- batteryLife - (1/droneBatteryLife);
+		batteryLife <- batteryLife - (1/droneBatteryCapacity);
 	}
 	
-	point select_best_cell{
+	point select_best_cell_FA{
 		float cur_attraction_val <- 0.0;
 		int best_x <- rnd(major_cell_side-1);
 		int best_y <- rnd(major_cell_side-1);
@@ -327,8 +334,19 @@ species drone parent:utility skills:[moving]{
 		return {minor_cell_side*best_x+rnd(minor_cell_side-1),minor_cell_side*best_y+rnd(minor_cell_side-1)};
 	}
 	
+	point select_best_cell_Random{
+		loop times:cell_side^2{
+			int i <- rnd(cell_side-1);
+			int j <- rnd(cell_side-1);
+			if(int(ground_surveillance_mat[i][j][IS_SURVEYED])=0 and int(ground_surveillance_mat[i][j][IS_ALLOCATED])=0){
+				return {i,j};
+			}
+		}
+		return {rnd(cell_side-1),rnd(cell_side-1)};
+	}
+	
 	action survey_nxt_cell{
-		point best_cell <-select_best_cell();
+		point best_cell <-select_best_cell_FA();
 		target_grid_X<-int(best_cell.x);
 		target_grid_Y<-int(best_cell.y);
 		target_location <- get_minor_grid_location(target_grid_X,target_grid_Y);
@@ -365,8 +383,18 @@ grid ground_cell height:cell_side width:cell_side neighbors:4 {
 
 
 experiment sar_simulation type:gui{
+	
+	parameter "Ground Side" category:"Ground Parameters" var: ground_side min:10 max:1000 step:5; 
+	parameter "minor_cell_side" category:"Ground Parameters" var: minor_cell_side min:2 max:100 step:5;
+	parameter "major_cell_side" category:"Ground Parameters" var: major_cell_side min:2 max:100 step:5;
+	
+	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:10 max:1000 step:5;
+	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:10 max:3000 step:5;
+	
+	parameter "Targets" category:"Target Parameters" var: nb_target_init min:10 max:1000 step:5;
+	
 	output{
-		display ground_display{
+		display ground_display_FA{
 			grid ground_cell border:#black;
 			species target aspect:icon;
 			species drone aspect:icon;
@@ -376,5 +404,6 @@ experiment sar_simulation type:gui{
 				data "number_of_target" value: no_of_target color: #blue;
 			}
 		}
+		monitor "Target Hit Time : " value: cur_avg_target_hit_time;
 	}
 }
