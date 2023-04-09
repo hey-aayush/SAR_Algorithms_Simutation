@@ -40,7 +40,7 @@ global {
 	list ground_surveillance_mat;
 	
 	list<drone> allDrones;
-	int droneBatteryCapacity <-500;
+	int droneBatteryCapacity <-2000;
 	
 	float attraction_constant <-1.0;
 	
@@ -89,10 +89,10 @@ global {
 	}
 	
 	reflex update_info{
-		cur_avg_target_hit_time <- no_of_target/(1+cycle*step);
+		cur_avg_target_hit_time <- (nb_target_init-no_of_target)/(1+cycle*step);
 		float netBatterylife <- 0.0;
 		loop droneModel over:list(drone){
-			netBatterylife <- netBatterylife+1-droneModel.batteryLife;
+			netBatterylife <- netBatterylife+1.0-droneModel.batteryLife;
 		}
 		cur_energy_consumed <-netBatterylife/no_of_drones;
 	}
@@ -164,9 +164,9 @@ species utility{
 		return int(ceil(time_req/step));
 	}	
 	
-	int get_lock_period(point drone_location,int grid_x,int grid_y,float drone_speed,float survey_time){
+	int get_lock_period(point drone_location,int grid_x,int grid_y,float drone_speed){
 		float distance_bet_points <- get_distance(drone_location,grid_x,grid_y);
-		float time_req <- get_time_req(distance_bet_points,drone_speed)+survey_time;
+		float time_req <- get_time_req(distance_bet_points,drone_speed);
 		int lock_period <- get_lock_period_req(time_req);
 		return lock_period;
 	}
@@ -260,7 +260,9 @@ species drone parent:utility skills:[moving]{
 	
 	int droneID;
 	
-	int lockPeriod;
+	int speedLockPeriod;
+	int surveyLockPeriod;
+	
 	float batteryLife;
 	
 	float speed;
@@ -278,7 +280,8 @@ species drone parent:utility skills:[moving]{
 	}	
 
 	action goto_minor_cell(int grid_x,int grid_y){
-		lockPeriod <- get_lock_period(location,grid_x,grid_y,speed,surveyTime);
+		speedLockPeriod <- get_lock_period(location,grid_x,grid_y,speed);
+		surveyLockPeriod <- int(surveyTime);
 		do goto(target_location);
 	}
 	
@@ -294,21 +297,24 @@ species drone parent:utility skills:[moving]{
 		do put_in_matrix_3d(ground_surveillance_mat,grid_X,grid_Y,IS_SURVEYED,1.0);
 	}
 	
-	reflex move {
-		
-		if(lockPeriod=0){
+	// TODO:: Test Locking Mechanism on small cell size.
+	reflex move {		
+		if(speedLockPeriod>0){
+			speedLockPeriod<-speedLockPeriod-1;
+			batteryLife <- batteryLife - (speed/float(droneBatteryCapacity));
+			do goto(target_location);
+		}else if(surveyLockPeriod>0){
+				surveyLockPeriod <- surveyLockPeriod-1;
+				if(surveyLockPeriod=0){
+					do deallocate_cell(target_grid_X,target_grid_Y);
+					do mark_cell_surveyed(target_grid_X,target_grid_Y);
+				}				
+		}else{
 			do update_attraction_mat(self);
 			do survey_nxt_cell();
 			batteryLife <- batteryLife - (1/float(droneBatteryCapacity));
-		}else{
-			lockPeriod<-lockPeriod-1;
-			batteryLife <- batteryLife - (speed/float(droneBatteryCapacity));
-			do goto(target_location);
-			if(lockPeriod=0){
-				do deallocate_cell(target_grid_X,target_grid_Y);
-				do mark_cell_surveyed(target_grid_X,target_grid_Y);
-			}
 		}
+		
 		ask target at_distance(0.5){
 			do get_rescued();
 			myself.targetRescued<-myself.targetRescued+1;
@@ -317,8 +323,6 @@ species drone parent:utility skills:[moving]{
 		ask ground_cell{
 			do update_color;
 		}
-		
-		write batteryLife;
 	}
 	
 	point select_best_cell_FA{
@@ -384,9 +388,10 @@ species drone parent:utility skills:[moving]{
 	}
 	
 	init{
-		lockPeriod<-0;
+		speedLockPeriod<-0;
+		surveyLockPeriod<-0;
 		speed<-5.0;
-		surveyTime<-1.0;
+		surveyTime<-2.5;
 		batteryLife<-1.0;
 		targetRescued<-0;
 		droneID<-length(allDrones);
