@@ -9,4 +9,5 @@ Contains simualtion details for analysing various SARs algorithms in MATLAB and 
 - Particle Swarm Optimisation
 
 ## Simualtion Output
-![FA_SS](https://user-images.githubusercontent.com/65902756/230161949-d1d414b7-dd7d-484a-9e3b-17ceb389b995.png)
+![Screenshot from 2023-04-09 10-50-34](https://user-images.githubusercontent.com/65902756/230756401-16e16d1b-f353-4a87-82d8-f80f7c1c0613.png)
+
