@@ -40,11 +40,12 @@ global {
 	list ground_surveillance_mat;
 	
 	list<drone> allDrones;
-	int droneBatteryCapacity <-2000;
+	int droneBatteryCapacity <-500;
 	
 	float attraction_constant <-1.0;
 	
 	float cur_avg_target_hit_time <-0.0;
+	float cur_energy_consumed <-0.0;
 	
 	geometry shape <- rectangle(ground_side,ground_side);
 	
@@ -85,6 +86,24 @@ global {
 	
 	reflex end_stimuation when:is_surveillance_complete(){
 		do pause;
+	}
+	
+	reflex update_info{
+		cur_avg_target_hit_time <- no_of_target/(1+cycle*step);
+		float netBatterylife <- 0.0;
+		loop droneModel over:list(drone){
+			netBatterylife <- netBatterylife+1-droneModel.batteryLife;
+		}
+		cur_energy_consumed <-netBatterylife/no_of_drones;
+	}
+	
+	list return_target_value{
+		list groundModels <- list(ground_model);
+		list groundModelData;
+		loop gModel over:groundModels{
+			add gModel.no_of_target to:groundModelData;
+		}
+		return groundModelData;
 	}
 	
 	init{	
@@ -225,7 +244,6 @@ species target parent:utility {
 		int no_target_at_cell <- int(ground_surveillance_mat[target_cell.grid_x][target_cell.grid_y][NO_OF_TARGETS]);
 		do put_in_matrix_3d(ground_surveillance_mat,target_cell.grid_x,target_cell.grid_y,NO_OF_TARGETS,float(no_target_at_cell+1));
 		no_of_target<-no_of_target-1;
-		cur_avg_target_hit_time <- no_of_target/(1+cycle*step);
 		do die();
 	}
 	
@@ -281,8 +299,10 @@ species drone parent:utility skills:[moving]{
 		if(lockPeriod=0){
 			do update_attraction_mat(self);
 			do survey_nxt_cell();
+			batteryLife <- batteryLife - (1/float(droneBatteryCapacity));
 		}else{
 			lockPeriod<-lockPeriod-1;
+			batteryLife <- batteryLife - (speed/float(droneBatteryCapacity));
 			do goto(target_location);
 			if(lockPeriod=0){
 				do deallocate_cell(target_grid_X,target_grid_Y);
@@ -298,7 +318,7 @@ species drone parent:utility skills:[moving]{
 			do update_color;
 		}
 		
-		batteryLife <- batteryLife - (1/droneBatteryCapacity);
+		write batteryLife;
 	}
 	
 	point select_best_cell_FA{
@@ -365,7 +385,7 @@ species drone parent:utility skills:[moving]{
 	
 	init{
 		lockPeriod<-0;
-		speed<-1.0;
+		speed<-5.0;
 		surveyTime<-1.0;
 		batteryLife<-1.0;
 		targetRescued<-0;
@@ -408,16 +428,20 @@ experiment sar_simulation type:gui{
 	}
 	
 	output{
-		display ground_display_FA{
+		display ground_display{
 			grid ground_cell border:#black;
 			species target aspect:icon;
 			species drone aspect:icon;
 		}
-		display Parameters_Information refresh: every(5#cycles){
-			chart "Targets Remaining" type: series size: {1,0.5} position: {0, 0.5} {
-				data "number_of_target" value: no_of_target color: (DRONE_MODE="Firefly Algorithm")?(#red):(#blue);
+		display Parameters_Information refresh: every(2#cycles){
+			chart "Targets and Battery Remaining" type: series size: {1,0.5} position: {0, 0} {
+				data "% of target Rescued" value: no_of_target/nb_target_init color:(#blue);
+				data "% of Energy Consumed" value: cur_energy_consumed color:(#green);
+			}
+			chart "Average Hit Time" type: series size: {1,0.5} position: {0, 0.5} {
+				data "Average Hit Time" value: cur_avg_target_hit_time color: #red;
 			}
 		}
-		monitor "Target Hit Time : " value: cur_avg_target_hit_time;
+//		monitor "Target Hit Time : " value: cur_avg_target_hit_time;
 	}
 }
