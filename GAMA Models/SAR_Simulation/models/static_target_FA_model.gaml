@@ -6,9 +6,9 @@
 */
 
 
-model Ground
+model ground
 
-global parent:agent{
+global {
 	
 	int ground_side <-100;
 	
@@ -20,6 +20,8 @@ global parent:agent{
 	float minor_cell_length <- float(ground_side)/float(cell_side);
 	float major_cell_length <- float(ground_side)/float(major_cell_side);
 	
+	string DRONE_MODE;
+
 	int nb_drones_init <- 20;
 	int nb_target_init <- 50;
 	
@@ -42,7 +44,7 @@ global parent:agent{
 	
 	float attraction_constant <-1.0;
 	
-	float cur_avg_target_hit_time <-0;
+	float cur_avg_target_hit_time <-0.0;
 	
 	geometry shape <- rectangle(ground_side,ground_side);
 	
@@ -346,7 +348,14 @@ species drone parent:utility skills:[moving]{
 	}
 	
 	action survey_nxt_cell{
-		point best_cell <-select_best_cell_FA();
+		point best_cell;
+		if(DRONE_MODE="Firefly Algorithm"){
+			best_cell <-select_best_cell_FA();
+		}else if(DRONE_MODE="Random"){
+			best_cell <-select_best_cell_Random();
+		}else{
+			error "Mode not Initialised !";
+		}
 		target_grid_X<-int(best_cell.x);
 		target_grid_Y<-int(best_cell.y);
 		target_location <- get_minor_grid_location(target_grid_X,target_grid_Y);
@@ -389,9 +398,14 @@ experiment sar_simulation type:gui{
 	parameter "major_cell_side" category:"Ground Parameters" var: major_cell_side min:2 max:100 step:5;
 	
 	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:10 max:1000 step:5;
+	parameter "Drone Mode" category:"Drone Parameters" var: DRONE_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Random"] ;
 	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:10 max:3000 step:5;
 	
 	parameter "Targets" category:"Target Parameters" var: nb_target_init min:10 max:1000 step:5;
+	
+	init{
+		create simulation with:[DRONE_MODE:"Random"];
+	}
 	
 	output{
 		display ground_display_FA{
@@ -401,7 +415,7 @@ experiment sar_simulation type:gui{
 		}
 		display Parameters_Information refresh: every(5#cycles){
 			chart "Targets Remaining" type: series size: {1,0.5} position: {0, 0.5} {
-				data "number_of_target" value: no_of_target color: #blue;
+				data "number_of_target" value: no_of_target color: (DRONE_MODE="Firefly Algorithm")?(#red):(#blue);
 			}
 		}
 		monitor "Target Hit Time : " value: cur_avg_target_hit_time;
