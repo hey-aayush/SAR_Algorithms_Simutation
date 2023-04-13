@@ -10,44 +10,42 @@ model ground
 
 global {
 	
+	// Ground Parameters	
 	int ground_side <-100;
-	
 	int minor_cell_side <- 5;
-	int major_cell_side <- 7;
-	
+	int major_cell_side <- 7;	
 	int cell_side <- minor_cell_side * major_cell_side;
-	
 	float minor_cell_length <- float(ground_side)/float(cell_side);
 	float major_cell_length <- float(ground_side)/float(major_cell_side);
-	
+	geometry shape <- rectangle(ground_side,ground_side);
+		
+	// Drones Parameters	
 	string DRONE_MODE;
+	list<drone> allDrones;
+	int droneBatteryCapacity <-2000;
+	float cur_avg_target_hit_time <-INIFINITY;
+	float cur_energy_consumed <-0.0;
 
-	int nb_drones_init <- 20;
-	int nb_target_init <- 50;
+	//Algorithm Constants - FA
+	float attraction_constant <-1.0;
+	float INIFINITY <- float(0);		
 	
+	// Simulation Parameters
+	int nb_drones_init <- 15;
+	int nb_target_init <- 40;
 	int no_of_drones <- nb_drones_init;
 	int no_of_target <- nb_target_init;
 	
+	// Ground Information Data
 	list target_map;
-	
 	list attraction_matrix;	
+	list ground_surveillance_mat;
 	
+	//Index
 	int IS_SURVEYED <- 0;
 	int IS_ALLOCATED <- 1;
 	int NO_OF_TARGETS <- 2;
 	int SURVEILLANCE_MAT_HEIGHT <- 3;
-	
-	list ground_surveillance_mat;
-	
-	list<drone> allDrones;
-	int droneBatteryCapacity <-2000;
-	
-	float attraction_constant <-1.0;
-	
-	float cur_avg_target_hit_time <-0.0;
-	float cur_energy_consumed <-0.0;
-	
-	geometry shape <- rectangle(ground_side,ground_side);
 	
 	action initialise_matrix_2d(list init_matrix,int cell_size){
 		loop i from:0 to:cell_size-1{
@@ -85,11 +83,11 @@ global {
 	}
 	
 	reflex end_stimuation when:is_surveillance_complete(){
-		do pause;
+		do pause();
 	}
 	
 	reflex update_info{
-		cur_avg_target_hit_time <- (nb_target_init-no_of_target)/(1+cycle*step);
+		cur_avg_target_hit_time <- (cycle=0)?(INIFINITY):(nb_target_init-no_of_target)/(cycle*step);
 		float netBatterylife <- 0.0;
 		loop droneModel over:list(drone){
 			netBatterylife <- netBatterylife+1.0-droneModel.batteryLife;
@@ -97,20 +95,11 @@ global {
 		cur_energy_consumed <-netBatterylife/no_of_drones;
 	}
 	
-	list return_target_value{
-		list groundModels <- list(ground_model);
-		list groundModelData;
-		loop gModel over:groundModels{
-			add gModel.no_of_target to:groundModelData;
-		}
-		return groundModelData;
-	}
-	
 	init{	
 		do initialise_matrix_2d(target_map,cell_side);
 		do initialise_matrix_3d(ground_surveillance_mat,cell_side,SURVEILLANCE_MAT_HEIGHT);
 		do initialise_matrix_3d(attraction_matrix,major_cell_side,no_of_drones);
-		create drone number:nb_drones_init;
+		create drone_BF number:nb_drones_init;
 		create target number:nb_target_init;
 	}
 }
@@ -193,32 +182,8 @@ species utility{
 				no_of_cells_surveyed<-no_of_cells_surveyed+int(ground_surveillance_mat[minor_row][minor_col][IS_SURVEYED]);
 			}
 		}
+
 		return no_of_cells_surveyed/minor_cell_side^2;
-	}
-	
-	// TODO:: Make sure empty major cells have less attraction over other target present major cells
-	float return_attraction_value(drone given_drone,int major_grid_X,int major_grid_Y){
-		point drone_location <- given_drone.location;
-		point major_cell_location <- get_major_grid_location(major_grid_X,major_grid_Y);
-		float distance_bet <- get_distance_bt_points(drone_location,major_cell_location);
-		float battery_life <- given_drone.batteryLife;
-		int reputation <- 1+given_drone.targetRescued;
-		float surveillance_factor <- get_surveyed_percentage(major_grid_X,major_grid_Y);
-		
-		float attraction_power <- (distance_bet)/(battery_life*reputation^2);
-		float attraction <- attraction_constant*exp(-1*attraction_power)*(1-surveillance_factor);
-		
-		return attraction;
-	}
-	
-	action update_attraction_mat(drone given_drone){
-		int drone_idx <-given_drone.droneID;
-		loop row from:0 to:major_cell_side-1{
-			loop col from:0 to:major_cell_side-1{
-				float attraction_val <- return_attraction_value(given_drone,row,col);
-				do put_in_matrix_3d(attraction_matrix,row,col,drone_idx,attraction_val);
-			}
-		}
 	}
 }
 
@@ -297,6 +262,21 @@ species drone parent:utility skills:[moving]{
 		do put_in_matrix_3d(ground_surveillance_mat,grid_X,grid_Y,IS_SURVEYED,1.0);
 	}
 	
+	// Return {bool,point} false -> turn off or dont move
+	action select_best_cell virtual:true type:point;
+	
+	// Move must be defined 
+	
+	action survey_nxt_cell{
+		point best_cell <-select_best_cell();
+		target_grid_X<-int(best_cell.x);
+		target_grid_Y<-int(best_cell.y);
+		target_location <- get_minor_grid_location(target_grid_X,target_grid_Y);
+		do allocate_cell(target_grid_X,target_grid_Y);
+		do goto_minor_cell(target_grid_X,target_grid_Y);
+	}
+	
+		
 	// TODO:: Test Locking Mechanism on small cell size.
 	reflex move {		
 		if(speedLockPeriod>0){
@@ -310,7 +290,6 @@ species drone parent:utility skills:[moving]{
 					do mark_cell_surveyed(target_grid_X,target_grid_Y);
 				}				
 		}else{
-			do update_attraction_mat(self);
 			do survey_nxt_cell();
 			batteryLife <- batteryLife - (1/float(droneBatteryCapacity));
 		}
@@ -325,7 +304,49 @@ species drone parent:utility skills:[moving]{
 		}
 	}
 	
-	point select_best_cell_FA{
+	init{
+		speedLockPeriod<-0;
+		surveyLockPeriod<-0;
+		speed<-5.0;
+		surveyTime<-2.5;
+		batteryLife<-1.0;
+		targetRescued<-0;
+		droneID<-length(allDrones);
+		
+		add self to:allDrones;
+	}
+	
+}
+
+species drone_FA parent:drone{
+	
+	// TODO:: Make sure empty major cells have less attraction over other target present major cells
+	float return_attraction_value(drone given_drone,int major_grid_X,int major_grid_Y){
+		point drone_location <- given_drone.location;
+		point major_cell_location <- get_major_grid_location(major_grid_X,major_grid_Y);
+		float distance_bet <- get_distance_bt_points(drone_location,major_cell_location);
+		float battery_life <- given_drone.batteryLife;
+		int reputation <- 1+given_drone.targetRescued;
+		float surveillance_factor <- get_surveyed_percentage(major_grid_X,major_grid_Y);
+		
+		float attraction_power <- (distance_bet)/(battery_life*reputation^2);
+		float attraction <- attraction_constant*exp(-1*attraction_power)*(1-surveillance_factor);
+		
+		return attraction;
+	}
+	
+	action update_attraction_mat(drone given_drone){
+		int drone_idx <-given_drone.droneID;
+		loop row from:0 to:major_cell_side-1{
+			loop col from:0 to:major_cell_side-1{
+				float attraction_val <- return_attraction_value(given_drone,row,col);
+				do put_in_matrix_3d(attraction_matrix,row,col,drone_idx,attraction_val);
+			}
+		}
+	}
+	
+	point select_best_cell {
+		do update_attraction_mat(self);
 		float cur_attraction_val <- 0.0;
 		int best_x <- rnd(major_cell_side-1);
 		int best_y <- rnd(major_cell_side-1);
@@ -359,8 +380,11 @@ species drone parent:utility skills:[moving]{
 		
 		return {minor_cell_side*best_x+rnd(minor_cell_side-1),minor_cell_side*best_y+rnd(minor_cell_side-1)};
 	}
+}
+
+species drone_RND parent:drone{
 	
-	point select_best_cell_Random{
+	point select_best_cell{
 		loop times:cell_side^2{
 			int i <- rnd(cell_side-1);
 			int j <- rnd(cell_side-1);
@@ -368,35 +392,30 @@ species drone parent:utility skills:[moving]{
 				return {i,j};
 			}
 		}
-		return {rnd(cell_side-1),rnd(cell_side-1)};
+		return {rnd(cell_side-1),rnd(cell_side-1)};		
 	}
 	
-	action survey_nxt_cell{
-		point best_cell;
-		if(DRONE_MODE="Firefly Algorithm"){
-			best_cell <-select_best_cell_FA();
-		}else if(DRONE_MODE="Random"){
-			best_cell <-select_best_cell_Random();
-		}else{
-			error "Mode not Initialised !";
-		}
-		target_grid_X<-int(best_cell.x);
-		target_grid_Y<-int(best_cell.y);
-		target_location <- get_minor_grid_location(target_grid_X,target_grid_Y);
-		do allocate_cell(target_grid_X,target_grid_Y);
-		do goto_minor_cell(target_grid_X,target_grid_Y);
-	}
+}
+
+species drone_BF parent:drone{
 	
-	init{
-		speedLockPeriod<-0;
-		surveyLockPeriod<-0;
-		speed<-5.0;
-		surveyTime<-2.5;
-		batteryLife<-1.0;
-		targetRescued<-0;
-		droneID<-length(allDrones);
+	point select_best_cell{
+		point curLocation <- self.location;
+		int grid_X <- int(curLocation.x/(ground_side/cell_side));
+		int grid_Y <- int(curLocation.y/(ground_side/cell_side));
 		
-		add self to:allDrones;
+		if(mod(grid_Y,2)=0){
+			if(grid_X=cell_side-1){
+				return {max(0,cell_side-1),min(grid_Y+1,cell_side-1)};
+			}
+			return {grid_X+1,grid_Y};	
+		}else{
+			if(grid_X=0){
+				return {0,grid_Y+1};
+			}
+			return {grid_X-1,grid_Y};	
+		}
+		return {cell_side-1,cell_side-1};
 	}
 	
 }
@@ -419,24 +438,25 @@ grid ground_cell height:cell_side width:cell_side neighbors:4 {
 experiment sar_simulation type:gui{
 	
 	parameter "Ground Side" category:"Ground Parameters" var: ground_side min:10 max:1000 step:5; 
-	parameter "minor_cell_side" category:"Ground Parameters" var: minor_cell_side min:2 max:100 step:5;
-	parameter "major_cell_side" category:"Ground Parameters" var: major_cell_side min:2 max:100 step:5;
+	parameter "minor cell side" category:"Ground Parameters" var: minor_cell_side min:2 max:100 step:5;
+	parameter "major cell side" category:"Ground Parameters" var: major_cell_side min:2 max:100 step:5;
 	
 	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:10 max:1000 step:5;
-	parameter "Drone Mode" category:"Drone Parameters" var: DRONE_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Random"] ;
+	parameter "Drone Mode" category:"Drone Parameters" var: DRONE_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Random","BackNFro"] ;
 	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:10 max:3000 step:5;
 	
 	parameter "Targets" category:"Target Parameters" var: nb_target_init min:10 max:1000 step:5;
 	
 	init{
-		create simulation with:[DRONE_MODE:"Random"];
+//		create simulation with:[DRONE_MODE:"Random"];
+//		create simulation with:[DRONE_MODE:"BackNFro"];
 	}
 	
 	output{
 		display ground_display{
 			grid ground_cell border:#black;
 			species target aspect:icon;
-			species drone aspect:icon;
+			species drone_BF aspect:icon;
 		}
 		display Parameters_Information refresh: every(2#cycles){
 			chart "Targets and Battery Remaining" type: series size: {1,0.5} position: {0, 0} {
