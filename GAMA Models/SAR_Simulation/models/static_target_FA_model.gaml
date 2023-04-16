@@ -6,14 +6,14 @@
 */
 
 
-model ground
+model ground 
 
 global {
 	
 	// Ground Parameters	
 	int ground_side <-100;
-	int minor_cell_side <- 5;
-	int major_cell_side <- 7;	
+	int minor_cell_side <- 4;
+	int major_cell_side <- 4;	
 	int cell_side <- minor_cell_side * major_cell_side;
 	float minor_cell_length <- float(ground_side)/float(cell_side);
 	float major_cell_length <- float(ground_side)/float(major_cell_side);
@@ -173,6 +173,21 @@ species utility{
 		return no_of_targets_found;
 	}
 	
+	bool is_cell_surveyed(int grid_X,int grid_Y){
+		return bool(ground_surveillance_mat[grid_X][grid_Y][IS_SURVEYED]=1.0);
+	}
+	
+	bool is_surveillance_complete{
+		loop i from:0 to:cell_side-1{
+			loop j from:0 to:cell_side-1{
+					if(ground_surveillance_mat[i][j][IS_SURVEYED]=0.0){
+						return false;
+					}
+			}
+		}
+		return true;
+	}
+	
 	float get_surveyed_percentage(int major_grid_X,int major_grid_Y){
 		int no_of_cells_surveyed <-0;
 		loop row from:0 to:minor_cell_side-1{
@@ -265,8 +280,6 @@ species drone parent:utility skills:[moving]{
 	// Return {bool,point} false -> turn off or dont move
 	action select_best_cell virtual:true type:point;
 	
-	// Move must be defined 
-	
 	action survey_nxt_cell{
 		point best_cell <-select_best_cell();
 		target_grid_X<-int(best_cell.x);
@@ -274,11 +287,10 @@ species drone parent:utility skills:[moving]{
 		target_location <- get_minor_grid_location(target_grid_X,target_grid_Y);
 		do allocate_cell(target_grid_X,target_grid_Y);
 		do goto_minor_cell(target_grid_X,target_grid_Y);
-	}
-	
+	}	
 		
 	// TODO:: Test Locking Mechanism on small cell size.
-	reflex move {		
+	reflex move when:(!is_surveillance_complete()) {		
 		if(speedLockPeriod>0){
 			speedLockPeriod<-speedLockPeriod-1;
 			batteryLife <- batteryLife - (speed/float(droneBatteryCapacity));
@@ -399,23 +411,43 @@ species drone_RND parent:drone{
 
 species drone_BF parent:drone{
 	
+	bool fr_direction <- true;
+		
+	int return_dir{
+		return (fr_direction)?(1):(-1);
+	}
+	
 	point select_best_cell{
+		
 		point curLocation <- self.location;
+		
 		int grid_X <- int(curLocation.x/(ground_side/cell_side));
 		int grid_Y <- int(curLocation.y/(ground_side/cell_side));
 		
-		if(mod(grid_Y,2)=0){
-			if(grid_X=cell_side-1){
-				return {max(0,cell_side-1),min(grid_Y+1,cell_side-1)};
-			}
-			return {grid_X+1,grid_Y};	
-		}else{
-			if(grid_X=0){
-				return {0,grid_Y+1};
-			}
-			return {grid_X-1,grid_Y};	
+		int best_grid_X <- grid_X;
+		int best_grid_Y <- grid_Y;
+		
+		if( grid_X<cell_side-1 and ((fr_direction and  mod(grid_Y,2)=0) or (!fr_direction and grid_X<cell_side-1 and mod(grid_Y,2)=1)) ) {
+			best_grid_X <- grid_X+1;
+			best_grid_Y <- grid_Y;
+		}else if(grid_X>0 and ((fr_direction and mod(grid_Y,2)=1) or (!fr_direction and mod(grid_Y,2)=0)) ){
+			best_grid_X <- grid_X-1;
+			best_grid_Y <- grid_Y;
+		}else if(fr_direction and grid_Y<cell_side-1 and ((grid_X=cell_side-1 and mod(grid_Y,2)=0) or (grid_X=0 and mod(grid_Y,2)=1)) ){
+			best_grid_X <- grid_X;
+			best_grid_Y <- grid_Y+1;
+		}else if(!fr_direction and grid_Y>0 and ((grid_X=0 and mod(grid_Y,2)=0) or (grid_X=cell_side-1 and mod(grid_Y,2)=1)) ){
+			best_grid_X <- grid_X;
+			best_grid_Y <- grid_Y-1;
 		}
-		return {cell_side-1,cell_side-1};
+		
+		bool is_surveyed <- is_cell_surveyed(best_grid_X,best_grid_Y);
+		
+		if (is_surveyed){
+			fr_direction <- false;
+		}
+		
+		return {best_grid_X,best_grid_Y};
 	}
 	
 }
