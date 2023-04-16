@@ -12,8 +12,8 @@ global {
 	
 	// Ground Parameters	
 	int ground_side <-100;
-	int minor_cell_side <- 4;
-	int major_cell_side <- 4;	
+	int minor_cell_side <- 2;
+	int major_cell_side <- 2;	
 	int cell_side <- minor_cell_side * major_cell_side;
 	float minor_cell_length <- float(ground_side)/float(cell_side);
 	float major_cell_length <- float(ground_side)/float(major_cell_side);
@@ -31,8 +31,8 @@ global {
 	float INIFINITY <- float(0);		
 	
 	// Simulation Parameters
-	int nb_drones_init <- 15;
-	int nb_target_init <- 40;
+	int nb_drones_init <- 2;
+	int nb_target_init <- 2;
 	int no_of_drones <- nb_drones_init;
 	int no_of_target <- nb_target_init;
 	
@@ -51,7 +51,7 @@ global {
 		loop i from:0 to:cell_size-1{
 			list row;
 			loop j from:0 to:cell_size-1{
-					add false to:row;
+					add 0 to:row;
 			}
 			add row to:init_matrix;
 		}	
@@ -100,13 +100,13 @@ global {
 		do initialise_matrix_3d(ground_surveillance_mat,cell_side,SURVEILLANCE_MAT_HEIGHT);
 		do initialise_matrix_3d(attraction_matrix,major_cell_side,no_of_drones);
 		create drone_BF number:nb_drones_init;
-		create target number:nb_target_init;
+		create target_src number:nb_target_init;
 	}
 }
 
 species utility{
 	
-	action put_in_matrix_2d(list target_matrix,int target_grid_X,int target_grid_Y,bool value){
+	action put_in_matrix_2d(list target_matrix,int target_grid_X,int target_grid_Y,int value){
 		list target_map_row <- target_matrix[target_grid_X];
 		put value in:target_map_row at:target_grid_Y;
 		put target_map_row in:target_matrix at:target_grid_X;
@@ -200,36 +200,161 @@ species utility{
 
 		return no_of_cells_surveyed/minor_cell_side^2;
 	}
+	
+	bool is_valid_cell(int minor_grid_x,int minor_grid_y){
+		return ( ( minor_grid_x > -1 and minor_grid_x < cell_side ) and ( minor_grid_y > -1 and minor_grid_y < cell_side ) );
+	}
 }
 
 species target parent:utility {
 	
 	image_file target_icon <- image_file("../includes/TargetLogo.png");
-	ground_cell target_cell <- one_of(ground_cell);
+	
+	int cur_grid_X;
+	int cur_grid_Y;
 	
 	aspect icon {
 		draw target_icon size: 2;
 	}
 	
 	action add_target_map(int target_grid_X,int target_grid_Y){
-		do put_in_matrix_2d(target_map,target_grid_X,target_grid_Y,true);
+		int cur_target <- int(target_map[target_grid_X][target_grid_Y]);
+		do put_in_matrix_2d(target_map,target_grid_X,target_grid_Y,cur_target+1);
 	}
 	
 	action remove_target_map(int target_grid_X,int target_grid_Y){
-		do put_in_matrix_2d(target_map,target_grid_X,target_grid_Y,false);
+		int cur_target <- int(target_map[target_grid_X][target_grid_Y]);
+		do put_in_matrix_2d(target_map,target_grid_X,target_grid_Y,cur_target-1);
+	}
+	
+	action move_to(int target_grid_X,int target_grid_Y){
+		do remove_target_map(cur_grid_X,cur_grid_Y);
+		do add_target_map(target_grid_X,target_grid_Y);
+		cur_grid_X <- target_grid_X;
+		cur_grid_Y <- target_grid_Y;
+		location <- get_minor_grid_location(cur_grid_X,cur_grid_Y);
 	}
 	
 	action get_rescued{
-		do remove_target_map(target_cell.grid_x,target_cell.grid_y);
-		int no_target_at_cell <- int(ground_surveillance_mat[target_cell.grid_x][target_cell.grid_y][NO_OF_TARGETS]);
-		do put_in_matrix_3d(ground_surveillance_mat,target_cell.grid_x,target_cell.grid_y,NO_OF_TARGETS,float(no_target_at_cell+1));
+		do remove_target_map(cur_grid_X,cur_grid_Y);
+		int no_target_at_cell <- int(ground_surveillance_mat[cur_grid_X][cur_grid_Y][NO_OF_TARGETS]);
+		do put_in_matrix_3d(ground_surveillance_mat,cur_grid_X,cur_grid_Y,NO_OF_TARGETS,float(no_target_at_cell+1));
 		no_of_target<-no_of_target-1;
 		do die();
 	}
+}
+
+species target_static parent:target {
 	
 	init{
+		ground_cell target_cell <- one_of(ground_cell);
+		cur_grid_X <- target_cell.grid_x;
+		cur_grid_Y <- target_cell.grid_y;
 		location <- target_cell.location;
+		
 		do add_target_map(target_cell.grid_x,target_cell.grid_y);
+		ask ground_cell{
+			do update_color;
+		}
+	}
+	
+}
+
+species target_Dynamic parent:target {
+	
+	list<point> all_directions <- [
+		{0,0,0},
+		{0,1,0}, 		//N
+		{1,-1,0},		//NW
+		{-1,0,0},		//W
+		{-1,-1,0},		//WS
+		{0,-1,0},		//S
+		{1,-1,0},		//SE
+		{1,0,0},		//E
+		{1,1,0}			//NE
+	];
+	
+	point cur_direction <- {0,0,0};
+	float direction_change_probabilty <- 0.40;
+	
+	reflex basic_move {
+		if (flip(direction_change_probabilty)){
+			cur_direction <- one_of(all_directions);	
+		}
+		
+		point new_grid_cell <- {cur_grid_X,cur_grid_Y,0} + cur_direction;
+		
+		loop while:(!is_valid_cell(int(new_grid_cell.x),int(new_grid_cell.y))){
+			cur_direction <- one_of(all_directions);
+			new_grid_cell <- {cur_grid_X,cur_grid_Y} + cur_direction;
+		}
+		
+		do move_to(int(new_grid_cell.x),int(new_grid_cell.y));
+
+		ask ground_cell{
+			do update_color;
+		}
+		
+	}
+	
+	init{
+		ground_cell target_cell <- one_of(ground_cell);
+		cur_grid_X <- target_cell.grid_x;
+		cur_grid_Y <- target_cell.grid_y;
+		location <- target_cell.location;
+		
+		do add_target_map(target_cell.grid_x,target_cell.grid_y);
+		ask ground_cell{
+			do update_color;
+		}
+	}
+}
+
+species target_src parent:target {
+	
+	list<point> all_directions <- [
+		{0,0,0},
+		{0,1,0}, 		//N
+		{1,-1,0},		//NW
+		{-1,0,0},		//W
+		{-1,-1,0},		//WS
+		{0,-1,0},		//S
+		{1,-1,0},		//SE
+		{1,0,0},		//E
+		{1,1,0}			//NE
+	];
+	
+	point cur_direction <- {0,0,0};
+	float direction_change_probabilty <- 0.40;
+	
+	reflex basic_move {
+		if (flip(direction_change_probabilty)){
+			cur_direction <- one_of(all_directions);	
+		}
+		
+		point new_grid_cell <- {cur_grid_X,cur_grid_Y,0} + cur_direction;
+		
+		loop while:(!is_valid_cell(int(new_grid_cell.x),int(new_grid_cell.y))){
+			cur_direction <- one_of(all_directions);
+			new_grid_cell <- {cur_grid_X,cur_grid_Y} + cur_direction;
+		}
+		
+		do move_to(int(new_grid_cell.x),int(new_grid_cell.y));
+
+		ask ground_cell{
+			do update_color;
+		}
+		
+	}
+	
+	init{
+		
+		cur_grid_X <- int(cell_side/2);
+		cur_grid_Y <- int(cell_side/2);
+		
+		location <- get_minor_grid_location(cur_grid_X,cur_grid_Y);
+		
+		do add_target_map(cur_grid_X,cur_grid_Y);
 		ask ground_cell{
 			do update_color;
 		}
@@ -453,11 +578,13 @@ species drone_BF parent:drone{
 }
 
 grid ground_cell height:cell_side width:cell_side neighbors:4 {
+	// Parameterise this var
+	bool isDynamic <- true;
 	
 	action update_color{
-		if(ground_surveillance_mat[grid_x][grid_y][IS_SURVEYED]=1.0){
+		if(!isDynamic and ground_surveillance_mat[grid_x][grid_y][IS_SURVEYED]=1.0){
 			color <- #green;
-		}else if(target_map[grid_x][grid_y]=true){
+		}else if(int(target_map[grid_x][grid_y])>0){
 			color <- #blue;
 		}else{
 			color <- #grey;
@@ -473,11 +600,11 @@ experiment sar_simulation type:gui{
 	parameter "minor cell side" category:"Ground Parameters" var: minor_cell_side min:2 max:100 step:5;
 	parameter "major cell side" category:"Ground Parameters" var: major_cell_side min:2 max:100 step:5;
 	
-	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:10 max:1000 step:5;
+	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:1 max:1000 step:5;
 	parameter "Drone Mode" category:"Drone Parameters" var: DRONE_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Random","BackNFro"] ;
 	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:10 max:3000 step:5;
 	
-	parameter "Targets" category:"Target Parameters" var: nb_target_init min:10 max:1000 step:5;
+	parameter "Targets" category:"Target Parameters" var: nb_target_init min:1 max:1000 step:5;
 	
 	init{
 //		create simulation with:[DRONE_MODE:"Random"];
@@ -487,7 +614,7 @@ experiment sar_simulation type:gui{
 	output{
 		display ground_display{
 			grid ground_cell border:#black;
-			species target aspect:icon;
+			species target_src aspect:icon;
 			species drone_BF aspect:icon;
 		}
 		display Parameters_Information refresh: every(2#cycles){
@@ -499,6 +626,6 @@ experiment sar_simulation type:gui{
 				data "Average Hit Time" value: cur_avg_target_hit_time color: #red;
 			}
 		}
-//		monitor "Target Hit Time : " value: cur_avg_target_hit_time;
+//		monitor "Target Hit Time : " value:target_map;
 	}
 }
