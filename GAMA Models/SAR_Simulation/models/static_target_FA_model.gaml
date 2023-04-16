@@ -12,8 +12,8 @@ global {
 	
 	// Ground Parameters	
 	int ground_side <-100;
-	int minor_cell_side <- 2;
-	int major_cell_side <- 2;	
+	int minor_cell_side <- 4;
+	int major_cell_side <- 4;	
 	int cell_side <- minor_cell_side * major_cell_side;
 	float minor_cell_length <- float(ground_side)/float(cell_side);
 	float major_cell_length <- float(ground_side)/float(major_cell_side);
@@ -31,8 +31,8 @@ global {
 	float INIFINITY <- float(0);		
 	
 	// Simulation Parameters
-	int nb_drones_init <- 2;
-	int nb_target_init <- 2;
+	int nb_drones_init <- 10;
+	int nb_target_init <- 20;
 	int no_of_drones <- nb_drones_init;
 	int no_of_target <- nb_target_init;
 	
@@ -87,7 +87,7 @@ global {
 	}
 	
 	reflex update_info{
-		cur_avg_target_hit_time <- (cycle=0)?(INIFINITY):(nb_target_init-no_of_target)/(cycle*step);
+		
 		float netBatterylife <- 0.0;
 		loop droneModel over:list(drone){
 			netBatterylife <- netBatterylife+1.0-droneModel.batteryLife;
@@ -174,7 +174,7 @@ species utility{
 	}
 	
 	bool is_cell_surveyed(int grid_X,int grid_Y){
-		return bool(ground_surveillance_mat[grid_X][grid_Y][IS_SURVEYED]=1.0);
+		return bool(ground_surveillance_mat[grid_X][grid_Y][IS_SURVEYED]!=0.0);
 	}
 	
 	bool is_surveillance_complete{
@@ -240,6 +240,7 @@ species target parent:utility {
 		int no_target_at_cell <- int(ground_surveillance_mat[cur_grid_X][cur_grid_Y][NO_OF_TARGETS]);
 		do put_in_matrix_3d(ground_surveillance_mat,cur_grid_X,cur_grid_Y,NO_OF_TARGETS,float(no_target_at_cell+1));
 		no_of_target<-no_of_target-1;
+		cur_avg_target_hit_time <- (cycle=0)?(INIFINITY):(nb_target_init-no_of_target)/(cycle*step);
 		do die();
 	}
 }
@@ -415,7 +416,14 @@ species drone parent:utility skills:[moving]{
 	}	
 		
 	// TODO:: Test Locking Mechanism on small cell size.
-	reflex move when:(!is_surveillance_complete()) {		
+	reflex move when:(!is_surveillance_complete()) {	
+		
+		ask target_src at_distance(0.5){
+			write "Asking target";
+			do get_rescued();
+			myself.targetRescued<-myself.targetRescued+1;
+		}
+			
 		if(speedLockPeriod>0){
 			speedLockPeriod<-speedLockPeriod-1;
 			batteryLife <- batteryLife - (speed/float(droneBatteryCapacity));
@@ -429,11 +437,6 @@ species drone parent:utility skills:[moving]{
 		}else{
 			do survey_nxt_cell();
 			batteryLife <- batteryLife - (1/float(droneBatteryCapacity));
-		}
-		
-		ask target at_distance(0.5){
-			do get_rescued();
-			myself.targetRescued<-myself.targetRescued+1;
 		}
 
 		ask ground_cell{
@@ -579,7 +582,7 @@ species drone_BF parent:drone{
 
 grid ground_cell height:cell_side width:cell_side neighbors:4 {
 	// Parameterise this var
-	bool isDynamic <- true;
+	bool isDynamic <- false;
 	
 	action update_color{
 		if(!isDynamic and ground_surveillance_mat[grid_x][grid_y][IS_SURVEYED]=1.0){
