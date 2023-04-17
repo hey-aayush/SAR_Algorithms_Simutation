@@ -12,8 +12,8 @@ global {
 	
 	// Ground Parameters	
 	int ground_side <-100;
-	int minor_cell_side <- 4;
-	int major_cell_side <- 4;	
+	int minor_cell_side <- 2;
+	int major_cell_side <- 12;	
 	int cell_side <- minor_cell_side * major_cell_side;
 	float minor_cell_length <- float(ground_side)/float(cell_side);
 	float major_cell_length <- float(ground_side)/float(major_cell_side);
@@ -25,16 +25,19 @@ global {
 	int droneBatteryCapacity <-2000;
 	float cur_avg_target_hit_time <-INIFINITY;
 	float cur_energy_consumed <-0.0;
-
+	float rescue_sensitivity <- 0.5;
+	
 	//Algorithm Constants - FA
 	float attraction_constant <-1.0;
 	float INIFINITY <- float(0);		
 	
 	// Simulation Parameters
-	int nb_drones_init <- 10;
-	int nb_target_init <- 20;
+	string TARGET_MODE;
+	int nb_drones_init <- 30;
+	int nb_target_init <- 50;
 	int no_of_drones <- nb_drones_init;
 	int no_of_target <- nb_target_init;
+	
 	
 	// Ground Information Data
 	list target_map;
@@ -72,6 +75,9 @@ global {
 	}
 	
 	bool is_surveillance_complete{
+		if(TARGET_MODE!="Static"){
+			return false;
+		}
 		loop i from:0 to:cell_side-1{
 			loop j from:0 to:cell_side-1{
 					if(ground_surveillance_mat[i][j][IS_SURVEYED]=0.0){
@@ -82,14 +88,24 @@ global {
 		return true;
 	}
 	
-	reflex end_stimuation when:is_surveillance_complete(){
+	reflex end_stimuation when:(is_surveillance_complete() or cur_energy_consumed>=1.0 ){
 		do pause();
 	}
 	
 	reflex update_info{
 		
 		float netBatterylife <- 0.0;
-		loop droneModel over:list(drone){
+		list<drone> drone_list;
+		if(DRONE_MODE='Firefly Algorithm'){
+			drone_list <- list(drone_FA);
+		}else if (DRONE_MODE='Back N Fro'){
+			drone_list <- list(drone_BF);
+		}else if(DRONE_MODE='Random'){
+			drone_list <- list(drone_RND);	
+		}else{
+			do error;
+		}
+		loop droneModel over:drone_list{
 			netBatterylife <- netBatterylife+1.0-droneModel.batteryLife;
 		}
 		cur_energy_consumed <-netBatterylife/no_of_drones;
@@ -99,8 +115,27 @@ global {
 		do initialise_matrix_2d(target_map,cell_side);
 		do initialise_matrix_3d(ground_surveillance_mat,cell_side,SURVEILLANCE_MAT_HEIGHT);
 		do initialise_matrix_3d(attraction_matrix,major_cell_side,no_of_drones);
-		create drone_BF number:nb_drones_init;
-		create target_src number:nb_target_init;
+		
+		if(DRONE_MODE='Firefly Algorithm'){
+			create drone_FA number:nb_drones_init;	
+		}else if (DRONE_MODE='Back N Fro'){
+			create drone_BF number:nb_drones_init;
+		}else if(DRONE_MODE='Random'){
+			create drone_RND number:nb_drones_init;	
+		}else{
+			do error;
+		}
+		
+		if (TARGET_MODE="Static"){
+			create target_static number:nb_target_init;	
+		}else if(TARGET_MODE="Dnyamic"){
+			create target_Dynamic number:nb_target_init;
+		}else if (TARGET_MODE="Sourced"){
+			create target_src number:nb_target_init;	
+		}else{
+			do error;
+		}
+		
 	}
 }
 
@@ -240,7 +275,7 @@ species target parent:utility {
 		int no_target_at_cell <- int(ground_surveillance_mat[cur_grid_X][cur_grid_Y][NO_OF_TARGETS]);
 		do put_in_matrix_3d(ground_surveillance_mat,cur_grid_X,cur_grid_Y,NO_OF_TARGETS,float(no_target_at_cell+1));
 		no_of_target<-no_of_target-1;
-		cur_avg_target_hit_time <- (cycle=0)?(INIFINITY):(nb_target_init-no_of_target)/(cycle*step);
+		cur_avg_target_hit_time <- (nb_target_init=no_of_target)?(INIFINITY):(cycle*step)/(nb_target_init-no_of_target);
 		do die();
 	}
 }
@@ -417,11 +452,24 @@ species drone parent:utility skills:[moving]{
 		
 	// TODO:: Test Locking Mechanism on small cell size.
 	reflex move when:(!is_surveillance_complete()) {	
-		
-		ask target_src at_distance(0.5){
-			write "Asking target";
-			do get_rescued();
-			myself.targetRescued<-myself.targetRescued+1;
+
+		if(TARGET_MODE="Static"){
+			ask target_static at_distance(rescue_sensitivity){
+				do get_rescued();
+				myself.targetRescued<-myself.targetRescued+1;
+			}
+		}else if(TARGET_MODE="Dnyamic"){
+			ask target_Dynamic at_distance(rescue_sensitivity){
+				do get_rescued();
+				myself.targetRescued<-myself.targetRescued+1;
+			}
+		}else if(TARGET_MODE="Sourced"){
+			ask target_src at_distance(rescue_sensitivity){
+				do get_rescued();
+				myself.targetRescued<-myself.targetRescued+1;
+			}
+		}else{
+			do error;
 		}
 			
 		if(speedLockPeriod>0){
@@ -458,6 +506,7 @@ species drone parent:utility skills:[moving]{
 	
 }
 
+// TODO::Implement different Algo for dynamic Targets
 species drone_FA parent:drone{
 	
 	// TODO:: Make sure empty major cells have less attraction over other target present major cells
@@ -522,21 +571,6 @@ species drone_FA parent:drone{
 	}
 }
 
-species drone_RND parent:drone{
-	
-	point select_best_cell{
-		loop times:cell_side^2{
-			int i <- rnd(cell_side-1);
-			int j <- rnd(cell_side-1);
-			if(int(ground_surveillance_mat[i][j][IS_SURVEYED])=0 and int(ground_surveillance_mat[i][j][IS_ALLOCATED])=0){
-				return {i,j};
-			}
-		}
-		return {rnd(cell_side-1),rnd(cell_side-1)};		
-	}
-	
-}
-
 species drone_BF parent:drone{
 	
 	bool fr_direction <- true;
@@ -580,45 +614,64 @@ species drone_BF parent:drone{
 	
 }
 
+species drone_RND parent:drone{
+	
+	point select_best_cell{
+		loop times:cell_side^2{
+			int i <- rnd(cell_side-1);
+			int j <- rnd(cell_side-1);
+			if(int(ground_surveillance_mat[i][j][IS_SURVEYED])=0 and int(ground_surveillance_mat[i][j][IS_ALLOCATED])=0){
+				return {i,j};
+			}
+		}
+		return {rnd(cell_side-1),rnd(cell_side-1)};		
+	}
+	
+}
+
+
 grid ground_cell height:cell_side width:cell_side neighbors:4 {
-	// Parameterise this var
-	bool isDynamic <- false;
 	
 	action update_color{
-		if(!isDynamic and ground_surveillance_mat[grid_x][grid_y][IS_SURVEYED]=1.0){
+		if(TARGET_MODE="Static" and ground_surveillance_mat[grid_x][grid_y][IS_SURVEYED]=1.0){
 			color <- #green;
 		}else if(int(target_map[grid_x][grid_y])>0){
 			color <- #blue;
 		}else{
 			color <- #grey;
 		}
+		
 	}
 	
 }
 
-
-experiment sar_simulation type:gui{
+experiment FA_static_target_simualtion type:gui{
 	
 	parameter "Ground Side" category:"Ground Parameters" var: ground_side min:10 max:1000 step:5; 
 	parameter "minor cell side" category:"Ground Parameters" var: minor_cell_side min:2 max:100 step:5;
 	parameter "major cell side" category:"Ground Parameters" var: major_cell_side min:2 max:100 step:5;
 	
 	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:1 max:1000 step:5;
-	parameter "Drone Mode" category:"Drone Parameters" var: DRONE_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Random","BackNFro"] ;
+	parameter "Drone Mode" category:"Drone Parameters" var: DRONE_MODE init:"Back N Fro" among:["Firefly Algorithm","Back N Fro","Random"];
 	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:10 max:3000 step:5;
+	parameter "Rescue Sensitivity" category:"Drone Parameters" var: rescue_sensitivity min:0.5 max:100.0 step:0.5;
 	
 	parameter "Targets" category:"Target Parameters" var: nb_target_init min:1 max:1000 step:5;
-	
-	init{
-//		create simulation with:[DRONE_MODE:"Random"];
-//		create simulation with:[DRONE_MODE:"BackNFro"];
-	}
+	parameter "Target Mode" category:"Target Parameters" var: TARGET_MODE init:"Sourced" among:["Static","Dnyamic","Sourced"];
 	
 	output{
 		display ground_display{
+			
 			grid ground_cell border:#black;
-			species target_src aspect:icon;
+
+			species drone_FA aspect:icon;
 			species drone_BF aspect:icon;
+			species drone_RND aspect:icon;
+			
+			species target_static aspect:icon;
+			species target_Dynamic aspect:icon;
+			species target_src aspect:icon;
+			
 		}
 		display Parameters_Information refresh: every(2#cycles){
 			chart "Targets and Battery Remaining" type: series size: {1,0.5} position: {0, 0} {
@@ -629,6 +682,5 @@ experiment sar_simulation type:gui{
 				data "Average Hit Time" value: cur_avg_target_hit_time color: #red;
 			}
 		}
-//		monitor "Target Hit Time : " value:target_map;
 	}
 }
