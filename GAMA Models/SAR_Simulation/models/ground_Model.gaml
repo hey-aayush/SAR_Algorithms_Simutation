@@ -11,15 +11,17 @@ model ground
 global {
 	
 	// Ground Parameters	
+	
 	int ground_side <-100;
 	int minor_cell_side <- 2;
-	int major_cell_side <- 12;	
+	int major_cell_side <- 8;	
 	int cell_side <- minor_cell_side * major_cell_side;
 	float minor_cell_length <- float(ground_side)/float(cell_side);
 	float major_cell_length <- float(ground_side)/float(major_cell_side);
 	geometry shape <- rectangle(ground_side,ground_side);
 		
 	// Drones Parameters	
+	
 	string DRONE_MODE;
 	list<drone> allDrones;
 	int droneBatteryCapacity <-2000;
@@ -28,23 +30,27 @@ global {
 	float rescue_sensitivity <- 0.5;
 	
 	//Algorithm Constants - FA
+	
 	float attraction_constant <-1.0;
 	float INIFINITY <- float(0);		
 	
 	// Simulation Parameters
+	
 	string TARGET_MODE;
-	int nb_drones_init <- 30;
-	int nb_target_init <- 50;
+	int nb_drones_init <- 10;
+	int nb_target_init <- 25;
 	int no_of_drones <- nb_drones_init;
 	int no_of_target <- nb_target_init;
 	
 	
 	// Ground Information Data
+	
 	list target_map;
 	list attraction_matrix;	
 	list ground_surveillance_mat;
 	
 	//Index
+	
 	int IS_SURVEYED <- 0;
 	int IS_ALLOCATED <- 1;
 	int NO_OF_TARGETS <- 2;
@@ -75,6 +81,7 @@ global {
 	}
 	
 	bool is_surveillance_complete{
+		
 		if(TARGET_MODE!="Static"){
 			return false;
 		}
@@ -85,11 +92,15 @@ global {
 					}
 			}
 		}
+		
 		return true;
+		
 	}
 	
 	reflex end_stimuation when:(is_surveillance_complete() or cur_energy_consumed>=1.0 ){
+		
 		do pause();
+	
 	}
 	
 	reflex update_info{
@@ -109,9 +120,11 @@ global {
 			netBatterylife <- netBatterylife+1.0-droneModel.batteryLife;
 		}
 		cur_energy_consumed <-netBatterylife/no_of_drones;
+	
 	}
 	
 	init{	
+		
 		do initialise_matrix_2d(target_map,cell_side);
 		do initialise_matrix_3d(ground_surveillance_mat,cell_side,SURVEILLANCE_MAT_HEIGHT);
 		do initialise_matrix_3d(attraction_matrix,major_cell_side,no_of_drones);
@@ -213,6 +226,9 @@ species utility{
 	}
 	
 	bool is_surveillance_complete{
+		if(TARGET_MODE!="Static"){
+			return false;
+		}
 		loop i from:0 to:cell_side-1{
 			loop j from:0 to:cell_side-1{
 					if(ground_surveillance_mat[i][j][IS_SURVEYED]=0.0){
@@ -239,6 +255,7 @@ species utility{
 	bool is_valid_cell(int minor_grid_x,int minor_grid_y){
 		return ( ( minor_grid_x > -1 and minor_grid_x < cell_side ) and ( minor_grid_y > -1 and minor_grid_y < cell_side ) );
 	}
+	
 }
 
 species target parent:utility {
@@ -249,40 +266,52 @@ species target parent:utility {
 	int cur_grid_Y;
 	
 	aspect icon {
+		
 		draw target_icon size: 2;
+		
 	}
 	
 	action add_target_map(int target_grid_X,int target_grid_Y){
+		
 		int cur_target <- int(target_map[target_grid_X][target_grid_Y]);
 		do put_in_matrix_2d(target_map,target_grid_X,target_grid_Y,cur_target+1);
+	
 	}
 	
 	action remove_target_map(int target_grid_X,int target_grid_Y){
+	
 		int cur_target <- int(target_map[target_grid_X][target_grid_Y]);
 		do put_in_matrix_2d(target_map,target_grid_X,target_grid_Y,cur_target-1);
+	
 	}
 	
 	action move_to(int target_grid_X,int target_grid_Y){
+	
 		do remove_target_map(cur_grid_X,cur_grid_Y);
 		do add_target_map(target_grid_X,target_grid_Y);
 		cur_grid_X <- target_grid_X;
 		cur_grid_Y <- target_grid_Y;
 		location <- get_minor_grid_location(cur_grid_X,cur_grid_Y);
+	
 	}
 	
 	action get_rescued{
+	
 		do remove_target_map(cur_grid_X,cur_grid_Y);
 		int no_target_at_cell <- int(ground_surveillance_mat[cur_grid_X][cur_grid_Y][NO_OF_TARGETS]);
 		do put_in_matrix_3d(ground_surveillance_mat,cur_grid_X,cur_grid_Y,NO_OF_TARGETS,float(no_target_at_cell+1));
 		no_of_target<-no_of_target-1;
 		cur_avg_target_hit_time <- (nb_target_init=no_of_target)?(INIFINITY):(cycle*step)/(nb_target_init-no_of_target);
 		do die();
+	
 	}
+	
 }
 
 species target_static parent:target {
 	
 	init{
+		
 		ground_cell target_cell <- one_of(ground_cell);
 		cur_grid_X <- target_cell.grid_x;
 		cur_grid_Y <- target_cell.grid_y;
@@ -292,6 +321,7 @@ species target_static parent:target {
 		ask ground_cell{
 			do update_color;
 		}
+		
 	}
 	
 }
@@ -299,6 +329,7 @@ species target_static parent:target {
 species target_Dynamic parent:target {
 	
 	list<point> all_directions <- [
+		
 		{0,0,0},
 		{0,1,0}, 		//N
 		{1,-1,0},		//NW
@@ -308,12 +339,14 @@ species target_Dynamic parent:target {
 		{1,-1,0},		//SE
 		{1,0,0},		//E
 		{1,1,0}			//NE
+		
 	];
 	
 	point cur_direction <- {0,0,0};
-	float direction_change_probabilty <- 0.40;
+	float direction_change_probabilty <- 0.20;
 	
 	reflex basic_move {
+		
 		if (flip(direction_change_probabilty)){
 			cur_direction <- one_of(all_directions);	
 		}
@@ -334,6 +367,7 @@ species target_Dynamic parent:target {
 	}
 	
 	init{
+		
 		ground_cell target_cell <- one_of(ground_cell);
 		cur_grid_X <- target_cell.grid_x;
 		cur_grid_Y <- target_cell.grid_y;
@@ -343,6 +377,7 @@ species target_Dynamic parent:target {
 		ask ground_cell{
 			do update_color;
 		}
+		
 	}
 }
 
@@ -364,6 +399,7 @@ species target_src parent:target {
 	float direction_change_probabilty <- 0.40;
 	
 	reflex basic_move {
+		
 		if (flip(direction_change_probabilty)){
 			cur_direction <- one_of(all_directions);	
 		}
@@ -394,6 +430,7 @@ species target_src parent:target {
 		ask ground_cell{
 			do update_color;
 		}
+		
 	}
 }
 
@@ -452,7 +489,7 @@ species drone parent:utility skills:[moving]{
 		
 	// TODO:: Test Locking Mechanism on small cell size.
 	reflex move when:(!is_surveillance_complete()) {	
-
+		
 		if(TARGET_MODE="Static"){
 			ask target_static at_distance(rescue_sensitivity){
 				do get_rescued();
@@ -508,6 +545,7 @@ species drone parent:utility skills:[moving]{
 
 // TODO::Implement different Algo for dynamic Targets
 species drone_FA parent:drone{
+	float rand_factor <- 0.15;
 	
 	// TODO:: Make sure empty major cells have less attraction over other target present major cells
 	float return_attraction_value(drone given_drone,int major_grid_X,int major_grid_Y){
@@ -536,6 +574,12 @@ species drone_FA parent:drone{
 	
 	point select_best_cell {
 		do update_attraction_mat(self);
+		
+		// TODO::Clean it up !
+		if(flip(rand_factor)){
+			return { minor_cell_side*rnd(major_cell_side-1)+rnd(minor_cell_side-1),minor_cell_side*rnd(major_cell_side-1)+rnd(minor_cell_side-1)};		
+		}
+		
 		float cur_attraction_val <- 0.0;
 		int best_x <- rnd(major_cell_side-1);
 		int best_y <- rnd(major_cell_side-1);
@@ -556,7 +600,7 @@ species drone_FA parent:drone{
 			loop j from:0 to:minor_cell_side-1{	
 				int grid_row <- minor_cell_side*best_x+i;
 				int grid_col <- minor_cell_side*best_y+j;
-				if(int(ground_surveillance_mat[grid_row][grid_col][IS_SURVEYED])=0 and int(ground_surveillance_mat[grid_row][grid_col][IS_ALLOCATED])=0){
+				if((TARGET_MODE!="Static" or int(ground_surveillance_mat[grid_row][grid_col][IS_SURVEYED])=0) and int(ground_surveillance_mat[grid_row][grid_col][IS_ALLOCATED])=0){
 					add {grid_row,grid_col} to:available_cell;
 				}
 			}
@@ -617,6 +661,11 @@ species drone_BF parent:drone{
 species drone_RND parent:drone{
 	
 	point select_best_cell{
+		
+		if(TARGET_MODE!="Static"){
+			return {rnd(cell_side-1),rnd(cell_side-1)};
+		}
+		
 		loop times:cell_side^2{
 			int i <- rnd(cell_side-1);
 			int j <- rnd(cell_side-1);
@@ -652,7 +701,7 @@ experiment FA_static_target_simualtion type:gui{
 	parameter "major cell side" category:"Ground Parameters" var: major_cell_side min:2 max:100 step:5;
 	
 	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:1 max:1000 step:5;
-	parameter "Drone Mode" category:"Drone Parameters" var: DRONE_MODE init:"Back N Fro" among:["Firefly Algorithm","Back N Fro","Random"];
+	parameter "Drone Mode" category:"Drone Parameters" var: DRONE_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Back N Fro","Random"];
 	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:10 max:3000 step:5;
 	parameter "Rescue Sensitivity" category:"Drone Parameters" var: rescue_sensitivity min:0.5 max:100.0 step:0.5;
 	
