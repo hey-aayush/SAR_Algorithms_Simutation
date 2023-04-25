@@ -694,7 +694,7 @@ grid ground_cell height:cell_side width:cell_side neighbors:4 {
 	
 }
 
-experiment FA_static_target_simualtion type:gui{
+experiment SAR_simualtion type:gui{
 	
 	parameter "Ground Side" category:"Ground Parameters" var: ground_side min:10 max:1000 step:5; 
 	parameter "minor cell side" category:"Ground Parameters" var: minor_cell_side min:2 max:100 step:5;
