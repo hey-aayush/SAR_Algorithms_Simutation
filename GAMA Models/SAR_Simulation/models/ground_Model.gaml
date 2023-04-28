@@ -40,14 +40,14 @@ global {
 	int nb_drones_init <- 10;
 	int nb_target_init <- 25;
 	int no_of_drones <- nb_drones_init;
-	int no_of_target <- nb_target_init;
-	
+	int no_of_target <- nb_target_init;	
 	
 	// Ground Information Data
 	
 	list target_map;
 	list attraction_matrix;	
 	list ground_surveillance_mat;
+	bool is_batch <- false;
 	
 	//Index
 	
@@ -83,7 +83,7 @@ global {
 	bool is_surveillance_complete{
 		
 		if(TARGET_MODE!="Static"){
-			return false;
+			return (no_of_target=0);
 		}
 		loop i from:0 to:cell_side-1{
 			loop j from:0 to:cell_side-1{
@@ -97,7 +97,7 @@ global {
 		
 	}
 	
-	reflex end_stimuation when:(is_surveillance_complete() or cur_energy_consumed>=1.0 ){
+	reflex end_stimuation when:(is_surveillance_complete() or cur_energy_consumed>=1.0 )and !is_batch{
 		
 		do pause();
 	
@@ -124,7 +124,7 @@ global {
 	}
 	
 	init{	
-		
+				
 		do initialise_matrix_2d(target_map,cell_side);
 		do initialise_matrix_3d(ground_surveillance_mat,cell_side,SURVEILLANCE_MAT_HEIGHT);
 		do initialise_matrix_3d(attraction_matrix,major_cell_side,no_of_drones);
@@ -731,5 +731,35 @@ experiment SAR_simualtion type:gui{
 				data "Average Hit Time" value: cur_avg_target_hit_time color: #red;
 			}
 		}
+	}
+}
+
+
+experiment Batch_Stimualtions type: batch keep_seed:true repeat:1 until: ( no_of_target=0 or cur_energy_consumed>=1.0 ) {
+	
+	float seedValue <- 10.0;
+    float seed <- seedValue; // force the value of the seed.
+	
+	parameter "minor cell side" category:"Ground Parameters" var: minor_cell_side min:2 max:8 step:2;
+	parameter "major cell side" category:"Ground Parameters" var: major_cell_side min:2 max:8 step:2;
+	
+	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:1 max:30 step:5;
+	parameter "Drone Mode" category:"Drone Parameters" var: DRONE_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Back N Fro","Random"];
+	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:1000 max:3000 step:1000;
+	parameter "Rescue Sensitivity" category:"Drone Parameters" var: rescue_sensitivity min:0.5 max:2.0 step:0.5;
+	
+	parameter "Targets" category:"Target Parameters" var: nb_target_init min:1 max:50 step:5;
+	parameter "Target Mode" category:"Target Parameters" var: TARGET_MODE init:"Sourced" among:["Static","Dnyamic","Sourced"];
+	
+	parameter "Batch mode:" var: is_batch <- true;
+	
+	method tabu minimize:cur_avg_target_hit_time  iter_max: 10 tabu_list_size: 3;
+	
+	
+	reflex save_results_explo {
+		ask simulations {
+			save [int(self),DRONE_MODE,TARGET_MODE,nb_drones_init,nb_target_init,no_of_target,minor_cell_side,major_cell_side,droneBatteryCapacity,rescue_sensitivity,cur_energy_consumed,cur_avg_target_hit_time] 
+		   		to: "results_1.csv" type: "csv" rewrite: (int(self) = 0) ? true : false header: true;
+		}		
 	}
 }
