@@ -1,0 +1,145 @@
+int(self),DRONE_ORIGIN_MODE,DRONE_ALGO_MODE,TARGET_MODE,nb_drones_init,nb_target_init,no_of_target,minor_cell_side,major_cell_side,droneBatteryCapacity,rescue_sensitivity,cur_energy_consumed,cur_avg_target_hit_time
+50,Sourced,Back N Fro,Sourced,10,10,1,3,5,5000,0.5,1.001,139.444444444444
+53,Sourced,Back N Fro,Sourced,10,20,5,3,5,5000,0.5,1.001,82.2666666666667
+56,Sourced,Back N Fro,Sourced,10,30,2,3,5,5000,0.5,1.001,37.3214285714286
+59,Sourced,Back N Fro,Sourced,10,40,1,3,5,5000,0.5,1.001,41.3333333333333
+122,Sourced,Back N Fro,Sourced,20,10,1,3,5,5000,0.5,1.001,180.555555555556
+125,Sourced,Back N Fro,Sourced,20,20,1,3,5,5000,0.5,1.001,55
+128,Sourced,Back N Fro,Sourced,20,30,5,3,5,5000,0.5,1.001,64.76
+131,Sourced,Back N Fro,Sourced,20,40,2,3,5,5000,0.5,1.001,42.5789473684211
+194,Sourced,Back N Fro,Sourced,30,10,1,3,5,5000,0.5,1.001,133.777777777778
+197,Sourced,Back N Fro,Sourced,30,20,3,3,5,5000,0.5,1.001,77.9411764705882
+200,Sourced,Back N Fro,Sourced,30,30,3,3,5,5000,0.5,1.001,56.5925925925926
+203,Sourced,Back N Fro,Sourced,30,40,6,3,5,5000,0.5,1.001,46.7352941176471
+266,Sourced,Back N Fro,Sourced,10,10,3,3,8,5000,0.5,1.0008,0
+269,Sourced,Back N Fro,Sourced,10,20,4,3,8,5000,0.5,1.0008,52.875
+272,Sourced,Back N Fro,Sourced,10,30,8,3,8,5000,0.5,1.0008,2.95454545454545
+275,Sourced,Back N Fro,Sourced,10,40,12,3,8,5000,0.5,1.0008,44.9285714285714
+338,Sourced,Back N Fro,Sourced,20,10,4,3,8,5000,0.5,1.0008,103.666666666667
+341,Sourced,Back N Fro,Sourced,20,20,4,3,8,5000,0.5,1.0008,41.25
+344,Sourced,Back N Fro,Sourced,20,30,7,3,8,5000,0.5,1.0008,27.0434782608696
+347,Sourced,Back N Fro,Sourced,20,40,14,3,8,5000,0.5,1.0008,2.03846153846154
+410,Sourced,Back N Fro,Sourced,30,10,3,3,8,5000,0.5,1.0008,49.5714285714286
+413,Sourced,Back N Fro,Sourced,30,20,6,3,8,5000,0.5,1.0008,24
+416,Sourced,Back N Fro,Sourced,30,30,6,3,8,5000,0.5,1.0008,72.625
+419,Sourced,Back N Fro,Sourced,30,40,9,3,8,5000,0.5,1.0008,20.0967741935484
+482,Sourced,Back N Fro,Sourced,10,10,3,5,5,5000,0.5,1.0008,222
+485,Sourced,Back N Fro,Sourced,10,20,5,5,5,5000,0.5,1.0008,45.4
+488,Sourced,Back N Fro,Sourced,10,30,6,5,5,5000,0.5,1.0008,28.2083333333333
+491,Sourced,Back N Fro,Sourced,10,40,10,5,5,5000,0.5,1.0008,51.1333333333333
+554,Sourced,Back N Fro,Sourced,20,10,2,5,5,5000,0.5,1.0008,197.125
+557,Sourced,Back N Fro,Sourced,20,20,3,5,5,5000,0.5,1.0008,41.2352941176471
+560,Sourced,Back N Fro,Sourced,20,30,5,5,5,5000,0.5,1.0008,27.04
+563,Sourced,Back N Fro,Sourced,20,40,11,5,5,5000,0.5,1.0008,32.2068965517241
+626,Sourced,Back N Fro,Sourced,30,10,3,5,5,5000,0.5,1.0008,95.8571428571429
+629,Sourced,Back N Fro,Sourced,30,20,5,5,5,5000,0.5,1.0008,105.4
+632,Sourced,Back N Fro,Sourced,30,30,8,5,5,5000,0.5,1.0008,1.81818181818182
+635,Sourced,Back N Fro,Sourced,30,40,10,5,5,5000,0.5,1.0008,12.3666666666667
+698,Sourced,Back N Fro,Sourced,10,10,2,5,8,5000,0.5,1.00099999999999,0
+701,Sourced,Back N Fro,Sourced,10,20,7,5,8,5000,0.5,1.00099999999999,0
+704,Sourced,Back N Fro,Sourced,10,30,11,5,8,5000,0.5,1.00099999999999,106.578947368421
+707,Sourced,Back N Fro,Sourced,10,40,6,5,8,5000,0.5,1.00099999999999,13.3529411764706
+770,Sourced,Back N Fro,Sourced,20,10,3,5,8,5000,0.5,1.00099999999999,63.8571428571429
+773,Sourced,Back N Fro,Sourced,20,20,7,5,8,5000,0.5,1.00099999999999,0.538461538461538
+776,Sourced,Back N Fro,Sourced,20,30,9,5,8,5000,0.5,1.00099999999999,0.095238095238095
+779,Sourced,Back N Fro,Sourced,20,40,11,5,8,5000,0.5,1.00099999999999,44.8275862068966
+842,Sourced,Back N Fro,Sourced,30,10,3,5,8,5000,0.5,1.00099999999999,0
+845,Sourced,Back N Fro,Sourced,30,20,8,5,8,5000,0.5,1.00099999999999,0
+848,Sourced,Back N Fro,Sourced,30,30,6,5,8,5000,0.5,1.00099999999999,4.54166666666667
+851,Sourced,Back N Fro,Sourced,30,40,12,5,8,5000,0.5,1.00099999999999,17.8214285714286
+38,Sourced,Firefly Algorithm,Sourced,10,10,0,3,5,5000,0.5,0.446,48.5
+41,Sourced,Firefly Algorithm,Sourced,10,20,1,3,5,5000,0.5,1.00024,29.8947368421053
+44,Sourced,Firefly Algorithm,Sourced,10,30,0,3,5,5000,0.5,0.08342,3.06666666666667
+47,Sourced,Firefly Algorithm,Sourced,10,40,0,3,5,5000,0.5,0.70092,19.1
+110,Sourced,Firefly Algorithm,Sourced,20,10,0,3,5,5000,0.5,0.12636,13.8
+113,Sourced,Firefly Algorithm,Sourced,20,20,0,3,5,5000,0.5,0.23933,13.15
+116,Sourced,Firefly Algorithm,Sourced,20,30,0,3,5,5000,0.5,0.46326,16.8333333333333
+119,Sourced,Firefly Algorithm,Sourced,20,40,0,3,5,5000,0.5,0.4671,12.8
+182,Sourced,Firefly Algorithm,Sourced,30,10,0,3,5,5000,0.5,0.058466666666667,6.4
+185,Sourced,Firefly Algorithm,Sourced,30,20,0,3,5,5000,0.5,0.244573333333333,13.3
+188,Sourced,Firefly Algorithm,Sourced,30,30,0,3,5,5000,0.5,0.12528,4.6
+191,Sourced,Firefly Algorithm,Sourced,30,40,0,3,5,5000,0.5,0.350413333333333,9.525
+254,Sourced,Firefly Algorithm,Sourced,10,10,0,3,8,5000,0.5,0.7966,87.3
+257,Sourced,Firefly Algorithm,Sourced,10,20,0,3,8,5000,0.5,0.96344,52.65
+260,Sourced,Firefly Algorithm,Sourced,10,30,2,3,8,5000,0.5,1.00074,24.9285714285714
+263,Sourced,Firefly Algorithm,Sourced,10,40,0,3,8,5000,0.5,0.97856,26.85
+326,Sourced,Firefly Algorithm,Sourced,20,10,0,3,8,5000,0.5,0.32096,35.7
+329,Sourced,Firefly Algorithm,Sourced,20,20,1,3,8,5000,0.5,1.00035,38.1578947368421
+332,Sourced,Firefly Algorithm,Sourced,20,30,0,3,8,5000,0.5,0.56524,20.6666666666667
+335,Sourced,Firefly Algorithm,Sourced,20,40,0,3,8,5000,0.5,0.88839,24.275
+398,Sourced,Firefly Algorithm,Sourced,30,10,0,3,8,5000,0.5,0.593833333333333,64.9
+401,Sourced,Firefly Algorithm,Sourced,30,20,0,3,8,5000,0.5,0.315733333333333,17.35
+404,Sourced,Firefly Algorithm,Sourced,30,30,0,3,8,5000,0.5,0.378973333333333,13.7666666666667
+407,Sourced,Firefly Algorithm,Sourced,30,40,0,3,8,5000,0.5,0.550013333333334,15.05
+470,Sourced,Firefly Algorithm,Sourced,10,10,0,5,5,5000,0.5,0.82586,90.2
+473,Sourced,Firefly Algorithm,Sourced,10,20,4,5,5,5000,0.5,1.0002,61.5625
+476,Sourced,Firefly Algorithm,Sourced,10,30,1,5,5,5000,0.5,1.00044,33.5862068965517
+479,Sourced,Firefly Algorithm,Sourced,10,40,0,5,5,5000,0.5,0.96962,26.3
+542,Sourced,Firefly Algorithm,Sourced,20,10,0,5,5,5000,0.5,0.06733,7.3
+545,Sourced,Firefly Algorithm,Sourced,20,20,0,5,5,5000,0.5,0.29614,16
+548,Sourced,Firefly Algorithm,Sourced,20,30,2,5,5,5000,0.5,1.00012,31.4285714285714
+551,Sourced,Firefly Algorithm,Sourced,20,40,0,5,5,5000,0.5,0.76468,20.85
+614,Sourced,Firefly Algorithm,Sourced,30,10,0,5,5,5000,0.5,0.3219,35.2
+617,Sourced,Firefly Algorithm,Sourced,30,20,0,5,5,5000,0.5,0.0891,4.85
+620,Sourced,Firefly Algorithm,Sourced,30,30,0,5,5,5000,0.5,0.250726666666667,9.13333333333333
+623,Sourced,Firefly Algorithm,Sourced,30,40,0,5,5,5000,0.5,0.33552,9.175
+686,Sourced,Firefly Algorithm,Sourced,10,10,4,5,8,5000,0.5,1.00076,16.5
+689,Sourced,Firefly Algorithm,Sourced,10,20,6,5,8,5000,0.5,1.00024,39.2142857142857
+692,Sourced,Firefly Algorithm,Sourced,10,30,6,5,8,5000,0.5,1.00004,45.125
+695,Sourced,Firefly Algorithm,Sourced,10,40,6,5,8,5000,0.5,1.00012,31.9705882352941
+758,Sourced,Firefly Algorithm,Sourced,20,10,0,5,8,5000,0.5,0.94918,103.1
+761,Sourced,Firefly Algorithm,Sourced,20,20,3,5,8,5000,0.5,1.00068,57.2352941176471
+764,Sourced,Firefly Algorithm,Sourced,20,30,2,5,8,5000,0.5,1.00017,20.2857142857143
+767,Sourced,Firefly Algorithm,Sourced,20,40,6,5,8,5000,0.5,1.0007,17.0882352941177
+830,Sourced,Firefly Algorithm,Sourced,30,10,0,5,8,5000,0.5,0.69226,75.6
+833,Sourced,Firefly Algorithm,Sourced,30,20,5,5,8,5000,0.5,1.00078,45.8666666666667
+836,Sourced,Firefly Algorithm,Sourced,30,30,0,5,8,5000,0.5,0.790573333333334,28.7666666666667
+839,Sourced,Firefly Algorithm,Sourced,30,40,0,5,8,5000,0.5,0.837126666666667,22.85
+62,Sourced,Random,Sourced,10,10,0,3,5,5000,0.5,0.60396,65.6
+65,Sourced,Random,Sourced,10,20,0,3,5,5000,0.5,0.72144,39.3
+68,Sourced,Random,Sourced,10,30,0,3,5,5000,0.5,0.27446,10
+71,Sourced,Random,Sourced,10,40,0,3,5,5000,0.5,0.77736,21.125
+134,Sourced,Random,Sourced,20,10,0,3,5,5000,0.5,0.25067,27.3
+137,Sourced,Random,Sourced,20,20,0,3,5,5000,0.5,0.10633,5.8
+140,Sourced,Random,Sourced,20,30,0,3,5,5000,0.5,0.27751,10.1
+143,Sourced,Random,Sourced,20,40,0,3,5,5000,0.5,0.25882,7.075
+206,Sourced,Random,Sourced,30,10,0,3,5,5000,0.5,0.175853333333333,19.1
+209,Sourced,Random,Sourced,30,20,0,3,5,5000,0.5,0.350733333333333,19.05
+212,Sourced,Random,Sourced,30,30,0,3,5,5000,0.5,0.13678,5
+215,Sourced,Random,Sourced,30,40,0,3,5,5000,0.5,0.30872,8.4
+278,Sourced,Random,Sourced,10,10,0,3,8,5000,0.5,0.93504,101.5
+281,Sourced,Random,Sourced,10,20,0,3,8,5000,0.5,0.9416,51.25
+284,Sourced,Random,Sourced,10,30,3,3,8,5000,0.5,1.00038,38.5555555555556
+287,Sourced,Random,Sourced,10,40,0,3,8,5000,0.5,0.86806,23.6
+350,Sourced,Random,Sourced,20,10,0,3,8,5000,0.5,0,0
+353,Sourced,Random,Sourced,20,20,0,3,8,5000,0.5,0.64114,35
+356,Sourced,Random,Sourced,20,30,0,3,8,5000,0.5,0.830730000000001,30.1666666666667
+359,Sourced,Random,Sourced,20,40,0,3,8,5000,0.5,0.40945,11.1
+422,Sourced,Random,Sourced,30,10,0,3,8,5000,0.5,0.08154,8.9
+425,Sourced,Random,Sourced,30,20,1,3,8,5000,0.5,1.00062,29.9473684210526
+428,Sourced,Random,Sourced,30,30,0,3,8,5000,0.5,0.327293333333333,11.8666666666667
+431,Sourced,Random,Sourced,30,40,0,3,8,5000,0.5,0.326786666666667,8.925
+494,Sourced,Random,Sourced,10,10,0,5,5,5000,0.5,0.5369,58.7
+497,Sourced,Random,Sourced,10,20,1,5,5,5000,0.5,1.00092,30.6842105263158
+500,Sourced,Random,Sourced,10,30,2,5,5,5000,0.5,1.0003,28.8571428571429
+503,Sourced,Random,Sourced,10,40,2,5,5,5000,0.5,1.00078,26.9736842105263
+566,Sourced,Random,Sourced,20,10,0,5,5,5000,0.5,0.21446,23.3
+569,Sourced,Random,Sourced,20,20,1,5,5,5000,0.5,1.00059,41.4736842105263
+572,Sourced,Random,Sourced,20,30,0,5,5,5000,0.5,0.859700000000001,31.1666666666667
+575,Sourced,Random,Sourced,20,40,0,5,5,5000,0.5,0.72542,19.775
+638,Sourced,Random,Sourced,30,10,0,5,5,5000,0.5,0.089253333333333,9.8
+641,Sourced,Random,Sourced,30,20,0,5,5,5000,0.5,0.525853333333333,28.6
+644,Sourced,Random,Sourced,30,30,1,5,5,5000,0.5,1.00087333333333,5.44827586206897
+647,Sourced,Random,Sourced,30,40,0,5,5,5000,0.5,0.804193333333333,21.85
+710,Sourced,Random,Sourced,10,10,2,5,8,5000,0.5,1.00084,0
+713,Sourced,Random,Sourced,10,20,5,5,8,5000,0.5,1.00092,65.4666666666667
+716,Sourced,Random,Sourced,10,30,4,5,8,5000,0.5,1.00046,39.8846153846154
+719,Sourced,Random,Sourced,10,40,5,5,8,5000,0.5,1.00092,9.8
+782,Sourced,Random,Sourced,20,10,2,5,8,5000,0.5,1.00013,80.375
+785,Sourced,Random,Sourced,20,20,1,5,8,5000,0.5,1.00029,33.6842105263158
+788,Sourced,Random,Sourced,20,30,3,5,8,5000,0.5,1.0008,26.7777777777778
+791,Sourced,Random,Sourced,20,40,2,5,8,5000,0.5,1.00049,24.5
+854,Sourced,Random,Sourced,30,10,0,5,8,5000,0.5,0.773906666666667,84.2
+857,Sourced,Random,Sourced,30,20,1,5,8,5000,0.5,1.00021333333333,27.1578947368421
+860,Sourced,Random,Sourced,30,30,0,5,8,5000,0.5,0.9764,35.4666666666667
+863,Sourced,Random,Sourced,30,40,2,5,8,5000,0.5,1.00033333333333,28.3421052631579

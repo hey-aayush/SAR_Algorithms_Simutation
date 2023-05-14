@@ -1,0 +1,145 @@
+int(self),DRONE_ORIGIN_MODE,DRONE_ALGO_MODE,TARGET_MODE,nb_drones_init,nb_target_init,no_of_target,minor_cell_side,major_cell_side,droneBatteryCapacity,rescue_sensitivity,cur_energy_consumed,cur_avg_target_hit_time
+14,Random,Back N Fro,Sourced,10,10,0,3,5,5000,0.5,0.07788,12.9
+17,Random,Back N Fro,Sourced,10,20,0,3,5,5000,0.5,0.130639999999999,10.85
+20,Random,Back N Fro,Sourced,10,30,0,3,5,5000,0.5,0.0712,3.9
+23,Random,Back N Fro,Sourced,10,40,0,3,5,5000,0.5,0.105499999999999,4.35
+86,Random,Back N Fro,Sourced,20,10,0,3,5,5000,0.5,0.08366,13.8
+89,Random,Back N Fro,Sourced,20,20,0,3,5,5000,0.5,0.06186,5.1
+92,Random,Back N Fro,Sourced,20,30,0,3,5,5000,0.5,0.114439999999999,6.3
+95,Random,Back N Fro,Sourced,20,40,0,3,5,5000,0.5,0.08449,3.625
+158,Random,Back N Fro,Sourced,30,10,0,3,5,5000,0.5,0.029906666666667,4.8
+161,Random,Back N Fro,Sourced,30,20,0,3,5,5000,0.5,0.0427,3.5
+164,Random,Back N Fro,Sourced,30,30,0,3,5,5000,0.5,0.03006,1.63333333333333
+167,Random,Back N Fro,Sourced,30,40,0,3,5,5000,0.5,0.034626666666667,1.45
+230,Random,Back N Fro,Sourced,10,10,0,3,8,5000,0.5,0.588719999999996,110.3
+233,Random,Back N Fro,Sourced,10,20,0,3,8,5000,0.5,0.334799999999998,31.35
+236,Random,Back N Fro,Sourced,10,30,0,3,8,5000,0.5,0.278299999999998,17.4
+239,Random,Back N Fro,Sourced,10,40,0,3,8,5000,0.5,0.368139999999998,17.25
+302,Random,Back N Fro,Sourced,20,10,0,3,8,5000,0.5,0.04834,9
+305,Random,Back N Fro,Sourced,20,20,0,3,8,5000,0.5,0.07346,6.85
+308,Random,Back N Fro,Sourced,20,30,0,3,8,5000,0.5,0.144009999999999,8.96666666666667
+311,Random,Back N Fro,Sourced,20,40,0,3,8,5000,0.5,0.08305,3.85
+374,Random,Back N Fro,Sourced,30,10,0,3,8,5000,0.5,0.185239999999999,34.6
+377,Random,Back N Fro,Sourced,30,20,0,3,8,5000,0.5,0.0479,4.45
+380,Random,Back N Fro,Sourced,30,30,0,3,8,5000,0.5,0.059733333333333,3.7
+383,Random,Back N Fro,Sourced,30,40,0,3,8,5000,0.5,0.112379999999999,5.275
+446,Random,Back N Fro,Sourced,10,10,0,5,5,5000,0.5,0.341919999999998,64
+449,Random,Back N Fro,Sourced,10,20,0,5,5,5000,0.5,0.685019999999996,64.15
+452,Random,Back N Fro,Sourced,10,30,0,5,5,5000,0.5,0.467459999999997,29.2
+455,Random,Back N Fro,Sourced,10,40,0,5,5,5000,0.5,0.229879999999999,10.775
+518,Random,Back N Fro,Sourced,20,10,0,5,5,5000,0.5,0.158949999999999,29.7
+521,Random,Back N Fro,Sourced,20,20,0,5,5,5000,0.5,0.171699999999999,16.05
+524,Random,Back N Fro,Sourced,20,30,0,5,5,5000,0.5,0.0673,4.16666666666667
+527,Random,Back N Fro,Sourced,20,40,0,5,5,5000,0.5,0.157759999999999,7.575
+590,Random,Back N Fro,Sourced,30,10,0,5,5,5000,0.5,0.031766666666667,5.8
+593,Random,Back N Fro,Sourced,30,20,0,5,5,5000,0.5,0.111973333333333,10.45
+596,Random,Back N Fro,Sourced,30,30,0,5,5,5000,0.5,0.132293333333333,8.33333333333333
+599,Random,Back N Fro,Sourced,30,40,0,5,5,5000,0.5,0.231593333333332,10.9
+662,Random,Back N Fro,Sourced,10,10,0,5,8,5000,0.5,0.617719999999994,140.3
+665,Random,Back N Fro,Sourced,10,20,0,5,8,5000,0.5,0.723919999999993,82.25
+668,Random,Back N Fro,Sourced,10,30,6,5,8,5000,0.5,1.00069999999999,94.375
+671,Random,Back N Fro,Sourced,10,40,0,5,8,5000,0.5,0.753599999999993,42.8
+734,Random,Back N Fro,Sourced,20,10,0,5,8,5000,0.5,0.530049999999995,120.3
+737,Random,Back N Fro,Sourced,20,20,0,5,8,5000,0.5,0.272759999999997,30.95
+740,Random,Back N Fro,Sourced,20,30,0,5,8,5000,0.5,0.397999999999996,30.1
+743,Random,Back N Fro,Sourced,20,40,0,5,8,5000,0.5,0.159059999999998,9.2
+806,Random,Back N Fro,Sourced,30,10,0,5,8,5000,0.5,0.0571,12.8
+809,Random,Back N Fro,Sourced,30,20,0,5,8,5000,0.5,0.151946666666665,17.25
+812,Random,Back N Fro,Sourced,30,30,0,5,8,5000,0.5,0.139766666666666,10.5666666666667
+815,Random,Back N Fro,Sourced,30,40,0,5,8,5000,0.5,0.084799999999999,4.8
+2,Random,Firefly Algorithm,Sourced,10,10,0,3,5,5000,0.5,0.11222,12.2
+5,Random,Firefly Algorithm,Sourced,10,20,0,3,5,5000,0.5,0.72486,39.55
+8,Random,Firefly Algorithm,Sourced,10,30,0,3,5,5000,0.5,0.30748,11.2
+11,Random,Firefly Algorithm,Sourced,10,40,0,3,5,5000,0.5,0.665,18.15
+74,Random,Firefly Algorithm,Sourced,20,10,0,3,5,5000,0.5,0.08896,9.7
+77,Random,Firefly Algorithm,Sourced,20,20,0,3,5,5000,0.5,0.37996,20.8
+80,Random,Firefly Algorithm,Sourced,20,30,0,3,5,5000,0.5,0.3942,14.3666666666667
+83,Random,Firefly Algorithm,Sourced,20,40,0,3,5,5000,0.5,0.53636,14.625
+146,Random,Firefly Algorithm,Sourced,30,10,0,3,5,5000,0.5,0.208893333333333,22.9
+149,Random,Firefly Algorithm,Sourced,30,20,0,3,5,5000,0.5,0.201486666666667,11
+152,Random,Firefly Algorithm,Sourced,30,30,0,3,5,5000,0.5,0.256666666666667,9.33333333333333
+155,Random,Firefly Algorithm,Sourced,30,40,0,3,5,5000,0.5,0.254326666666667,6.925
+218,Random,Firefly Algorithm,Sourced,10,10,2,3,8,5000,0.5,1.0002,42.875
+221,Random,Firefly Algorithm,Sourced,10,20,2,3,8,5000,0.5,1.00012,56.0555555555556
+224,Random,Firefly Algorithm,Sourced,10,30,4,3,8,5000,0.5,1.00024,41.4230769230769
+227,Random,Firefly Algorithm,Sourced,10,40,1,3,8,5000,0.5,1.00088,26.5641025641026
+290,Random,Firefly Algorithm,Sourced,20,10,0,3,8,5000,0.5,0.66376,72.5
+293,Random,Firefly Algorithm,Sourced,20,20,0,3,8,5000,0.5,0.86151,47.3
+296,Random,Firefly Algorithm,Sourced,20,30,1,3,8,5000,0.5,1.00029,33.1034482758621
+299,Random,Firefly Algorithm,Sourced,20,40,1,3,8,5000,0.5,1.00046,25.2820512820513
+362,Random,Firefly Algorithm,Sourced,30,10,0,3,8,5000,0.5,0.258833333333333,28.3
+365,Random,Firefly Algorithm,Sourced,30,20,0,3,8,5000,0.5,0.513173333333334,27.95
+368,Random,Firefly Algorithm,Sourced,30,30,0,3,8,5000,0.5,0.461153333333333,16.8
+371,Random,Firefly Algorithm,Sourced,30,40,0,3,8,5000,0.5,0.664613333333334,18.1
+434,Random,Firefly Algorithm,Sourced,10,10,0,5,5,5000,0.5,0.8906,96.7
+437,Random,Firefly Algorithm,Sourced,10,20,6,5,5,5000,0.5,1.0008,75.0714285714286
+440,Random,Firefly Algorithm,Sourced,10,30,4,5,5,5000,0.5,1.00004,41.6153846153846
+443,Random,Firefly Algorithm,Sourced,10,40,6,5,5,5000,0.5,1.00042,31.0882352941176
+506,Random,Firefly Algorithm,Sourced,20,10,0,5,5,5000,0.5,0.51941,56.6
+509,Random,Firefly Algorithm,Sourced,20,20,0,5,5,5000,0.5,0.62656,34.15
+512,Random,Firefly Algorithm,Sourced,20,30,1,5,5,5000,0.5,1.00082,30.1034482758621
+515,Random,Firefly Algorithm,Sourced,20,40,2,5,5,5000,0.5,1.00045,25.7368421052632
+578,Random,Firefly Algorithm,Sourced,30,10,0,5,5,5000,0.5,0.713933333333334,77.4
+581,Random,Firefly Algorithm,Sourced,30,20,0,5,5,5000,0.5,0.660853333333334,35.95
+584,Random,Firefly Algorithm,Sourced,30,30,0,5,5,5000,0.5,0.728766666666667,26.5
+587,Random,Firefly Algorithm,Sourced,30,40,0,5,5,5000,0.5,0.542653333333333,14.775
+650,Random,Firefly Algorithm,Sourced,10,10,2,5,8,5000,0.5,1.00056,53.875
+653,Random,Firefly Algorithm,Sourced,10,20,14,5,8,5000,0.5,1.00074,138.5
+656,Random,Firefly Algorithm,Sourced,10,30,12,5,8,5000,0.5,1.00008,60
+659,Random,Firefly Algorithm,Sourced,10,40,18,5,8,5000,0.5,1.00052,46.7272727272727
+722,Random,Firefly Algorithm,Sourced,20,10,3,5,8,5000,0.5,1.00044,84.4285714285714
+725,Random,Firefly Algorithm,Sourced,20,20,9,5,8,5000,0.5,1.00081,93.7272727272727
+728,Random,Firefly Algorithm,Sourced,20,30,14,5,8,5000,0.5,1.00036,45.0625
+731,Random,Firefly Algorithm,Sourced,20,40,10,5,8,5000,0.5,1.00059,35.1
+794,Random,Firefly Algorithm,Sourced,30,10,4,5,8,5000,0.5,1.00041333333333,103.666666666667
+797,Random,Firefly Algorithm,Sourced,30,20,1,5,8,5000,0.5,1.00061333333333,34.1578947368421
+800,Random,Firefly Algorithm,Sourced,30,30,5,5,8,5000,0.5,1.00026666666667,34.76
+803,Random,Firefly Algorithm,Sourced,30,40,6,5,8,5000,0.5,1.00040666666667,31.5588235294118
+26,Random,Random,Sourced,10,10,0,3,5,5000,0.5,0.36872,39.5
+29,Random,Random,Sourced,10,20,0,3,5,5000,0.5,0.5841,31.7
+32,Random,Random,Sourced,10,30,0,3,5,5000,0.5,0.70534,25.4333333333333
+35,Random,Random,Sourced,10,40,1,3,5,5000,0.5,1.0002,14.3333333333333
+98,Random,Random,Sourced,20,10,0,3,5,5000,0.5,0.59352,64.8
+101,Random,Random,Sourced,20,20,0,3,5,5000,0.5,0.22945,12.5
+104,Random,Random,Sourced,20,30,0,3,5,5000,0.5,0.29154,10.5333333333333
+107,Random,Random,Sourced,20,40,0,3,5,5000,0.5,0.3205,8.7
+170,Random,Random,Sourced,30,10,0,3,5,5000,0.5,0.16366,17.8
+173,Random,Random,Sourced,30,20,0,3,5,5000,0.5,0.21946,11.85
+176,Random,Random,Sourced,30,30,0,3,5,5000,0.5,0.2479,8.96666666666667
+179,Random,Random,Sourced,30,40,0,3,5,5000,0.5,0.233813333333333,6.35
+242,Random,Random,Sourced,10,10,0,3,8,5000,0.5,0.74718,81.5
+245,Random,Random,Sourced,10,20,3,3,8,5000,0.5,1.00076,57.0588235294118
+248,Random,Random,Sourced,10,30,3,3,8,5000,0.5,1.00064,39.8888888888889
+251,Random,Random,Sourced,10,40,8,3,8,5000,0.5,1.0008,29.15625
+314,Random,Random,Sourced,20,10,0,3,8,5000,0.5,0.75954,82.5
+317,Random,Random,Sourced,20,20,0,3,8,5000,0.5,0.68212,37.1
+320,Random,Random,Sourced,20,30,4,3,8,5000,0.5,1.00008,39.6538461538462
+323,Random,Random,Sourced,20,40,1,3,8,5000,0.5,1.00005,18.4871794871795
+386,Random,Random,Sourced,30,10,0,3,8,5000,0.5,0.234626666666667,25.5
+389,Random,Random,Sourced,30,20,0,3,8,5000,0.5,0.61622,33.6
+392,Random,Random,Sourced,30,30,0,3,8,5000,0.5,0.80228,29.0666666666667
+395,Random,Random,Sourced,30,40,0,3,8,5000,0.5,0.618146666666667,16.775
+458,Random,Random,Sourced,10,10,2,5,5,5000,0.5,1.00016,112.875
+461,Random,Random,Sourced,10,20,4,5,5,5000,0.5,1.00084,47.125
+464,Random,Random,Sourced,10,30,3,5,5,5000,0.5,1.00044,40.1481481481481
+467,Random,Random,Sourced,10,40,8,5,5,5000,0.5,1.00008,31.84375
+530,Random,Random,Sourced,20,10,0,5,5,5000,0.5,0.61747,67
+533,Random,Random,Sourced,20,20,0,5,5,5000,0.5,0.84741,46.2
+536,Random,Random,Sourced,20,30,0,5,5,5000,0.5,0.69366,25.0666666666667
+539,Random,Random,Sourced,20,40,2,5,5,5000,0.5,1.00049,25.7368421052632
+602,Random,Random,Sourced,30,10,0,5,5,5000,0.5,0.824233333333333,89.7
+605,Random,Random,Sourced,30,20,0,5,5,5000,0.5,0.80348,43.7
+608,Random,Random,Sourced,30,30,0,5,5,5000,0.5,0.594546666666667,21.5666666666667
+611,Random,Random,Sourced,30,40,0,5,5,5000,0.5,0.849833333333334,23.1
+674,Random,Random,Sourced,10,10,5,5,8,5000,0.5,1.00084,142.4
+677,Random,Random,Sourced,10,20,10,5,8,5000,0.5,1.00052,93.6
+680,Random,Random,Sourced,10,30,13,5,8,5000,0.5,1.00052,52.1764705882353
+683,Random,Random,Sourced,10,40,17,5,8,5000,0.5,1.0004,40.3478260869565
+746,Random,Random,Sourced,20,10,2,5,8,5000,0.5,1.00085,134.125
+749,Random,Random,Sourced,20,20,3,5,8,5000,0.5,1.00068,61.0588235294118
+752,Random,Random,Sourced,20,30,8,5,8,5000,0.5,1.00003,46.9090909090909
+755,Random,Random,Sourced,20,40,9,5,8,5000,0.5,1.00016,34.258064516129
+818,Random,Random,Sourced,30,10,1,5,8,5000,0.5,1.00011333333333,107.444444444444
+821,Random,Random,Sourced,30,20,2,5,8,5000,0.5,1.00033333333333,51.3888888888889
+824,Random,Random,Sourced,30,30,1,5,8,5000,0.5,1.00096,27.448275862069
+827,Random,Random,Sourced,30,40,4,5,8,5000,0.5,1.00061333333333,29.8055555555556
