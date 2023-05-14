@@ -12,9 +12,9 @@ global {
 	
 	// Ground Parameters	
 	
-	int ground_side <-100;
-	int minor_cell_side <- 2;
-	int major_cell_side <- 8;	
+	int ground_side <-300;
+	int minor_cell_side <- 3;
+	int major_cell_side <- 7;	
 	int cell_side <- minor_cell_side * major_cell_side;
 	float minor_cell_length <- float(ground_side)/float(cell_side);
 	float major_cell_length <- float(ground_side)/float(major_cell_side);
@@ -22,7 +22,8 @@ global {
 		
 	// Drones Parameters	
 	
-	string DRONE_MODE;
+	string DRONE_ALGO_MODE;
+	string DRONE_ORIGIN_MODE;
 	list<drone> allDrones;
 	int droneBatteryCapacity <-2000;
 	float cur_avg_target_hit_time <-INIFINITY;
@@ -107,11 +108,11 @@ global {
 		
 		float netBatterylife <- 0.0;
 		list<drone> drone_list;
-		if(DRONE_MODE='Firefly Algorithm'){
+		if(DRONE_ALGO_MODE='Firefly Algorithm'){
 			drone_list <- list(drone_FA);
-		}else if (DRONE_MODE='Back N Fro'){
+		}else if (DRONE_ALGO_MODE='Back N Fro'){
 			drone_list <- list(drone_BF);
-		}else if(DRONE_MODE='Random'){
+		}else if(DRONE_ALGO_MODE='Random'){
 			drone_list <- list(drone_RND);	
 		}else{
 			do error;
@@ -129,11 +130,11 @@ global {
 		do initialise_matrix_3d(ground_surveillance_mat,cell_side,SURVEILLANCE_MAT_HEIGHT);
 		do initialise_matrix_3d(attraction_matrix,major_cell_side,no_of_drones);
 		
-		if(DRONE_MODE='Firefly Algorithm'){
+		if(DRONE_ALGO_MODE='Firefly Algorithm'){
 			create drone_FA number:nb_drones_init;	
-		}else if (DRONE_MODE='Back N Fro'){
+		}else if (DRONE_ALGO_MODE='Back N Fro'){
 			create drone_BF number:nb_drones_init;
-		}else if(DRONE_MODE='Random'){
+		}else if(DRONE_ALGO_MODE='Random'){
 			create drone_RND number:nb_drones_init;	
 		}else{
 			do error;
@@ -537,7 +538,9 @@ species drone parent:utility skills:[moving]{
 		batteryLife<-1.0;
 		targetRescued<-0;
 		droneID<-length(allDrones);
-		
+		if(DRONE_ORIGIN_MODE="Sourced"){
+			location<-get_minor_grid_location(int(cell_side/2),int(cell_side/2));
+		}	
 		add self to:allDrones;
 	}
 	
@@ -556,7 +559,7 @@ species drone_FA parent:drone{
 		int reputation <- 1+given_drone.targetRescued;
 		float surveillance_factor <- get_surveyed_percentage(major_grid_X,major_grid_Y);
 		
-		float attraction_power <- (distance_bet)/(battery_life*reputation^2);
+		float attraction_power <- (distance_bet^(0.5))*(rnd(1))/(battery_life*reputation);
 		float attraction <- attraction_constant*exp(-1*attraction_power)*(1-surveillance_factor);
 		
 		return attraction;
@@ -701,7 +704,8 @@ experiment SAR_simualtion type:gui{
 	parameter "major cell side" category:"Ground Parameters" var: major_cell_side min:2 max:100 step:5;
 	
 	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:1 max:1000 step:5;
-	parameter "Drone Mode" category:"Drone Parameters" var: DRONE_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Back N Fro","Random"];
+	parameter "Drone Origin Mode" category:"Drone Parameters" var: DRONE_ORIGIN_MODE init:"Sourced" among:["Random","Sourced"];
+	parameter "Drone Algo Mode" category:"Drone Parameters" var: DRONE_ALGO_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Back N Fro","Random"];
 	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:10 max:3000 step:5;
 	parameter "Rescue Sensitivity" category:"Drone Parameters" var: rescue_sensitivity min:0.5 max:100.0 step:0.5;
 	
@@ -735,31 +739,27 @@ experiment SAR_simualtion type:gui{
 }
 
 
-experiment Batch_Stimualtions type: batch keep_seed:true repeat:1 until: ( no_of_target=0 or cur_energy_consumed>=1.0 ) {
+experiment Batch_Stimualtions type: batch keep_seed:false repeat:1 until:(no_of_target=0 or cur_energy_consumed>=1.0){
 	
-	float seedValue <- 10.0;
-    float seed <- seedValue; // force the value of the seed.
+//	parameter "Ground Side" category:"Ground Parameters" var: ground_side min:100 max:500 step:200; 
+//	parameter "minor cell side" category:"Ground Parameters" var: minor_cell_side min:3 max:5 step:1;
+//	parameter "major cell side" category:"Ground Parameters" var: major_cell_side min:4 max:8 step:2;
 	
-	parameter "minor cell side" category:"Ground Parameters" var: minor_cell_side min:2 max:8 step:2;
-	parameter "major cell side" category:"Ground Parameters" var: major_cell_side min:2 max:8 step:2;
+	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:10 max:30 step:10;
+	parameter "Drone Origin Mode" category:"Drone Parameters" var: DRONE_ORIGIN_MODE init:"Sourced" among:["Random","Sourced"];
+	parameter "Drone Algo Mode" category:"Drone Parameters" var: DRONE_ALGO_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Back N Fro","Random"];
+//	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:1000 max:3000 step:1000;
+//	parameter "Rescue Sensitivity" category:"Drone Parameters" var: rescue_sensitivity min:0.5 max:1.0 step:0.5;
 	
-	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:1 max:30 step:5;
-	parameter "Drone Mode" category:"Drone Parameters" var: DRONE_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Back N Fro","Random"];
-	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:1000 max:3000 step:1000;
-	parameter "Rescue Sensitivity" category:"Drone Parameters" var: rescue_sensitivity min:0.5 max:2.0 step:0.5;
-	
-	parameter "Targets" category:"Target Parameters" var: nb_target_init min:1 max:50 step:5;
+	parameter "Targets" category:"Target Parameters" var: nb_target_init min:10 max:40 step:10;
 	parameter "Target Mode" category:"Target Parameters" var: TARGET_MODE init:"Sourced" among:["Static","Dnyamic","Sourced"];
 	
 	parameter "Batch mode:" var: is_batch <- true;
 	
-	method tabu minimize:cur_avg_target_hit_time  iter_max: 10 tabu_list_size: 3;
-	
-	
 	reflex save_results_explo {
 		ask simulations {
-			save [int(self),DRONE_MODE,TARGET_MODE,nb_drones_init,nb_target_init,no_of_target,minor_cell_side,major_cell_side,droneBatteryCapacity,rescue_sensitivity,cur_energy_consumed,cur_avg_target_hit_time] 
-		   		to: "results_1.csv" type: "csv" rewrite: (int(self) = 0) ? true : false header: true;
+			save [int(self),DRONE_ORIGIN_MODE,DRONE_ALGO_MODE,TARGET_MODE,nb_drones_init,nb_target_init,no_of_target,minor_cell_side,major_cell_side,droneBatteryCapacity,rescue_sensitivity,cur_energy_consumed,cur_avg_target_hit_time] 
+		   		to: "results_5.csv" type: "csv" rewrite: (int(self) = 0) ? true : false header: true;
 		}		
 	}
 }
