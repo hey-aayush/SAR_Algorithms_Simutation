@@ -1,8 +1,8 @@
 /**
 * Name: Ground
-* Simulation Model to test Firefly search and rescue algorithm for static target  
+* Simulation Model to test Firefly,Back-and-Forth,Random search and rescue algorithm for static target  
 * Author: Aayush Kumar Shandilya
-* Tags:  Firefly Algorithm, Multi-agent systems
+* Tags:  Firefly Algorithm,Back-and-Forth, Multi-agent systems
 */
 
 
@@ -25,7 +25,7 @@ global {
 	string DRONE_ALGO_MODE;
 	string DRONE_ORIGIN_MODE;
 	list<drone> allDrones;
-	int droneBatteryCapacity <-2000;
+	int droneBatteryCapacity <-5000;
 	float cur_avg_target_hit_time <-INIFINITY;
 	float cur_energy_consumed <-0.0;
 	float rescue_sensitivity <- 0.5;
@@ -741,15 +741,15 @@ experiment SAR_simualtion type:gui{
 
 experiment Batch_Stimualtions type: batch keep_seed:false repeat:1 until:(no_of_target=0 or cur_energy_consumed>=1.0){
 	
-//	parameter "Ground Side" category:"Ground Parameters" var: ground_side min:100 max:500 step:200; 
-//	parameter "minor cell side" category:"Ground Parameters" var: minor_cell_side min:3 max:5 step:1;
-//	parameter "major cell side" category:"Ground Parameters" var: major_cell_side min:4 max:8 step:2;
+	parameter "Ground Side" category:"Ground Parameters" var: ground_side min:100 max:400 step:300; 
+	parameter "minor cell side" category:"Ground Parameters" var: minor_cell_side min:3 max:5 step:2;
+	parameter "major cell side" category:"Ground Parameters" var: major_cell_side min:5 max:8 step:3;
 	
 	parameter "Drones" category:"Drone Parameters" var: nb_drones_init min:10 max:30 step:10;
 	parameter "Drone Origin Mode" category:"Drone Parameters" var: DRONE_ORIGIN_MODE init:"Sourced" among:["Random","Sourced"];
 	parameter "Drone Algo Mode" category:"Drone Parameters" var: DRONE_ALGO_MODE init:"Firefly Algorithm" among:["Firefly Algorithm","Back N Fro","Random"];
-//	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:1000 max:3000 step:1000;
-//	parameter "Rescue Sensitivity" category:"Drone Parameters" var: rescue_sensitivity min:0.5 max:1.0 step:0.5;
+	parameter "Battery Capacity" category:"Drone Parameters" var: droneBatteryCapacity min:1000 max:3000 step:1000;
+	parameter "Rescue Sensitivity" category:"Drone Parameters" var: rescue_sensitivity min:0.5 max:1.0 step:0.5;
 	
 	parameter "Targets" category:"Target Parameters" var: nb_target_init min:10 max:40 step:10;
 	parameter "Target Mode" category:"Target Parameters" var: TARGET_MODE init:"Sourced" among:["Static","Dnyamic","Sourced"];
@@ -759,7 +759,7 @@ experiment Batch_Stimualtions type: batch keep_seed:false repeat:1 until:(no_of_
 	reflex save_results_explo {
 		ask simulations {
 			save [int(self),DRONE_ORIGIN_MODE,DRONE_ALGO_MODE,TARGET_MODE,nb_drones_init,nb_target_init,no_of_target,minor_cell_side,major_cell_side,droneBatteryCapacity,rescue_sensitivity,cur_energy_consumed,cur_avg_target_hit_time] 
-		   		to: "results_5.csv" type: "csv" rewrite: (int(self) = 0) ? true : false header: true;
+		   		to: "results.csv" type: "csv" rewrite: (int(self) = 0) ? true : false header: true;
 		}		
 	}
 }
